@@ -1,0 +1,11 @@
+{
+  "fonts": [
+    { "family": "Playfair Display", "style": "Regular" },
+    { "family": "Playfair Display", "style": "Bold" },
+    { "family": "Playfair Display", "style": "Italic" },
+    { "family": "Inter", "style": "Regular" },
+    { "family": "Inter", "style": "Medium" },
+    { "family": "Inter", "style": "SemiBold" },
+    { "family": "Inter", "style": "Bold" }
+  ]
+}
