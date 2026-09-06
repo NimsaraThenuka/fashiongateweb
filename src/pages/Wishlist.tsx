@@ -42,12 +42,21 @@ export default function Wishlist() {
               <div className="relative">
                 <ProductCard product={product} index={i} hideMobileActions={true} />
                 <div className="mt-3 flex gap-2">
-                  <button
-                    onClick={() => addToCart(product, product.sizes[0], product.colors[0])}
-                    className="flex-1 bg-[#C4922A] hover:bg-[#96700A] text-white font-semibold text-[10px] uppercase tracking-wider py-2.5 px-1.5 text-center rounded-xs transition-colors cursor-pointer"
-                  >
-                    Add to Bag
-                  </button>
+                  {product.inStock ? (
+                    <button
+                      onClick={() => addToCart(product, product.sizes[0], product.colors[0])}
+                      className="flex-1 bg-[#C4922A] hover:bg-[#96700A] text-white font-semibold text-[10px] uppercase tracking-wider py-2.5 px-1.5 text-center rounded-xs transition-colors cursor-pointer"
+                    >
+                      Add to Bag
+                    </button>
+                  ) : (
+                    <button
+                      disabled
+                      className="flex-1 bg-[#E8E4DF] text-[#888888] font-semibold text-[10px] uppercase tracking-wider py-2.5 px-1.5 text-center rounded-xs border border-[#D5D0CA] cursor-not-allowed select-none"
+                    >
+                      Out of Stock
+                    </button>
+                  )}
                   <button
                     onClick={() => toggleWishlist(product)}
                     className="w-10 h-10 border border-[#E8E4DF] hover:border-red-400 hover:text-red-400 flex items-center justify-center text-[#9E9E9E] transition-all rounded-xs cursor-pointer shrink-0"

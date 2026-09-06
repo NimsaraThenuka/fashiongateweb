@@ -9,7 +9,7 @@ export default function FAQ() {
   const FAQS = [
     {
       q: 'Where is your boutique located in Sri Lanka?',
-      a: 'Our physical store is located at 459A 1/1, Thalawathugoda Rd, Madiwela, Kotte. We welcome you to visit us and experience our products firsthand, touch the fabrics, and receive personalized fittings.'
+      a: 'Our physical boutique is located at 459A 1/1, Thalawathugoda Road, Madiwela, Kotte, Sri Lanka. We welcome you to visit us and experience our products firsthand, explore our Men’s and Women’s fashion collections, and receive personalized fittings.'
     },
     {
       q: 'What payment options do you support?',

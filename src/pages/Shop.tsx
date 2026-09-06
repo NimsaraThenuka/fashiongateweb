@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { SlidersHorizontal, X, Grid3X3, LayoutList, ChevronDown } from 'lucide-react';
-import { products, categories } from '../data/products';
+import { categories } from '../data/products';
+import { useProducts } from '../context/ProductContext';
 import ProductCard from '../components/ProductCard';
 import { useReveal } from '../hooks/useReveal';
 
@@ -36,7 +37,17 @@ const WOMEN_CLOTHING = ['Dresses','Tops','Pants','Blazers','Jeans','Jumpsuits','
 /* ── Men's sub-filter config ── */
 const MEN_CLOTHING = ['T-Shirts','Shirts','Pants','Polo Shirts','Shorts','Jackets','Jeans'];
 
+/* ── Kids' sub-filter config ── */
+const KIDS_CLOTHING = ['Dresses', 'Shirts', 'Sets', 'Shorts'];
+const KIDS_TAGS = [
+  { id: 'new', label: 'New In' },
+  { id: 'girls', label: "Girls" },
+  { id: 'boys', label: "Boys" },
+  { id: 'festive', label: 'Festive Wear' },
+];
+
 export default function Shop() {
+  const { products } = useProducts();
   const [searchParams, setSearchParams] = useSearchParams();
   const catParam = searchParams.get('cat') || 'all';
   const subParam = searchParams.get('sub') || 'all';
@@ -156,6 +167,26 @@ export default function Shop() {
           p.description.toLowerCase().includes('silk') ||
           p.description.toLowerCase().includes('handloom')
         );
+      } else if (tag === 'girls') {
+        result = result.filter(p =>
+          p.name.toLowerCase().includes('girl') ||
+          p.subcategory.toLowerCase().includes('dresses') ||
+          p.description.toLowerCase().includes('girl') ||
+          p.description.toLowerCase().includes('frock')
+        );
+      } else if (tag === 'boys') {
+        result = result.filter(p =>
+          p.name.toLowerCase().includes('boy') ||
+          p.subcategory.toLowerCase().includes('shirts') ||
+          p.description.toLowerCase().includes('boy') ||
+          p.description.toLowerCase().includes('sarong')
+        );
+      } else if (tag === 'festive') {
+        result = result.filter(p =>
+          p.description.toLowerCase().includes('festive') ||
+          p.description.toLowerCase().includes('celebration') ||
+          p.subcategory.toLowerCase().includes('sets')
+        );
       }
     }
 
@@ -193,7 +224,7 @@ export default function Shop() {
         : 'border border-[#E8E4DF] text-[#4A4A4A] hover:border-[#C4922A] hover:text-[#C4922A] bg-white'
     }`;
 
-  const showSubFilters = catParam === 'women' || catParam === 'men';
+  const showSubFilters = catParam === 'women' || catParam === 'men' || catParam === 'kids';
 
   return (
     <div className="min-h-screen bg-white pt-20 md:pt-24">
@@ -345,6 +376,31 @@ export default function Shop() {
                   <span className="text-[10px] tracking-[0.15em] uppercase font-bold text-[#C4922A] mr-2 shrink-0">Filter</span>
                   <button onClick={() => handleTagChange('all')} className={pill(tagParam === 'all')}>All</button>
                   <button onClick={() => handleTagChange('new')} className={pill(tagParam === 'new')}>New In</button>
+                </div>
+              </>
+            )}
+
+            {/* Kids' filters */}
+            {catParam === 'kids' && (
+              <>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[10px] tracking-[0.15em] uppercase font-bold text-[#C4922A] mr-2 shrink-0">Edits</span>
+                  <button onClick={() => handleTagChange('all')} className={pill(tagParam === 'all')}>All</button>
+                  {KIDS_TAGS.map(t => (
+                    <button key={t.id} onClick={() => handleTagChange(t.id)} className={pill(tagParam === t.id)}>
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[10px] tracking-[0.15em] uppercase font-bold text-[#C4922A] mr-2 shrink-0">Clothing</span>
+                  <button onClick={() => handleSubcategoryChange('all')} className={pill(subParam === 'all')}>All</button>
+                  {KIDS_CLOTHING.map(c => (
+                    <button key={c} onClick={() => handleSubcategoryChange(c.toLowerCase())} className={pill(subParam.toLowerCase() === c.toLowerCase())}>
+                      {c}
+                    </button>
+                  ))}
                 </div>
               </>
             )}

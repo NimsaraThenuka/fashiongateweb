@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Heart, ShoppingBag, Star, ChevronDown, Truck, RotateCcw, Shield, Check, ChevronLeft, ChevronRight } from 'lucide-react';
-import { products } from '../data/products';
+import { useProducts } from '../context/ProductContext';
 import ProductCard from '../components/ProductCard';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -9,7 +9,8 @@ import { useReveal } from '../hooks/useReveal';
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
-  const product = products.find(p => p.id === Number(id));
+  const { products, getProductById } = useProducts();
+  const product = getProductById(Number(id)) || products.find(p => p.id === Number(id));
   const { addToCart } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
   useReveal();
@@ -92,8 +93,13 @@ export default function ProductDetail() {
                   </button>
                 </>
               )}
-              {product.badge && (
-                <span className={`absolute top-4 left-4 text-[10px] tracking-[0.12em] uppercase font-semibold px-3 py-1 ${
+              {/* Badge & Out of Stock tag */}
+              {!product.inStock ? (
+                <span className="absolute top-4 left-4 text-[10px] tracking-[0.14em] uppercase font-bold px-3 py-1 bg-black/90 text-white border border-red-500/60 shadow-lg z-10 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-red-500 inline-block animate-pulse" /> Out of Stock
+                </span>
+              ) : product.badge ? (
+                <span className={`absolute top-4 left-4 text-[10px] tracking-[0.12em] uppercase font-semibold px-3 py-1 z-10 ${
                   product.badge === 'sale' ? 'bg-[#C4922A] text-white' :
                   product.badge === 'limited' ? 'bg-[#96700A] text-white' :
                   product.badge === 'trending' ? 'bg-white text-[#0A0A0A] border border-[#0A0A0A]' :
@@ -101,6 +107,15 @@ export default function ProductDetail() {
                 }`}>
                   {product.badge}
                 </span>
+              ) : null}
+
+              {/* Center watermark overlay if out of stock */}
+              {!product.inStock && (
+                <div className="absolute inset-0 bg-black/35 backdrop-grayscale-[20%] flex items-center justify-center pointer-events-none z-10">
+                  <span className="bg-black/95 text-white uppercase tracking-[0.25em] text-xs md:text-sm font-bold px-6 py-3 border border-white/20 shadow-2xl rounded-xs">
+                    Sold Out
+                  </span>
+                </div>
               )}
             </div>
             {allImages.length > 1 && (
@@ -120,7 +135,18 @@ export default function ProductDetail() {
 
           {/* Info */}
           <div className="reveal delay-200">
-            <p className="text-xs text-[#C4922A] tracking-[0.15em] uppercase mb-2">{product.subcategory}</p>
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <p className="text-xs text-[#C4922A] tracking-[0.15em] uppercase">{product.subcategory}</p>
+              {!product.inStock ? (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase bg-red-50 text-red-700 border border-red-200 rounded-xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500" /> Out of Stock
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> In Stock
+                </span>
+              )}
+            </div>
             <h1 className="font-display text-3xl md:text-4xl font-bold text-[#0A0A0A] mb-4">{product.name}</h1>
 
             {/* Rating */}
@@ -134,7 +160,7 @@ export default function ProductDetail() {
             </div>
 
             {/* Price */}
-            <div className="flex items-baseline gap-3 mb-8">
+            <div className="flex items-baseline gap-3 mb-6">
               <span className="font-display text-3xl font-bold text-[#0A0A0A]">Rs. {product.price.toLocaleString()}</span>
               {product.originalPrice && (
                 <>
@@ -143,6 +169,18 @@ export default function ProductDetail() {
                 </>
               )}
             </div>
+
+            {/* Out of Stock Alert Banner */}
+            {!product.inStock && (
+              <div className="mb-6 p-4 bg-amber-50/70 border border-amber-200/80 rounded-sm">
+                <p className="text-xs font-semibold text-amber-900 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-amber-500" /> Currently Unavailable
+                </p>
+                <p className="text-xs text-amber-800/80 leading-relaxed">
+                  This exclusive piece is currently sold out. You may save it to your Wishlist to be notified when it returns to stock.
+                </p>
+              </div>
+            )}
 
             {/* Color selection */}
             <div className="mb-6">
@@ -193,23 +231,33 @@ export default function ProductDetail() {
 
             {/* CTAs */}
             <div className="flex gap-3 mb-8">
-              <button
-                onClick={handleAddToCart}
-                className={`flex-1 flex items-center justify-center gap-2 py-4 text-xs tracking-[0.1em] uppercase font-semibold transition-all duration-300 ${
-                  addedToCart
-                    ? 'bg-green-600 text-white'
-                    : 'btn-gold'
-                }`}
-              >
-                {addedToCart ? (
-                  <><Check size={14} /> Added to Cart</>
-                ) : (
-                  <><ShoppingBag size={14} /> Add to Bag</>
-                )}
-              </button>
+              {product.inStock ? (
+                <button
+                  onClick={handleAddToCart}
+                  disabled={addedToCart}
+                  className={`flex-1 flex items-center justify-center gap-2 py-4 text-xs tracking-[0.1em] uppercase font-semibold transition-all duration-300 cursor-pointer ${
+                    addedToCart
+                      ? 'bg-green-600 text-white'
+                      : 'btn-gold'
+                  }`}
+                >
+                  {addedToCart ? (
+                    <><Check size={14} /> Added to Cart</>
+                  ) : (
+                    <><ShoppingBag size={14} /> Add to Bag</>
+                  )}
+                </button>
+              ) : (
+                <button
+                  disabled
+                  className="flex-1 flex items-center justify-center gap-2 py-4 text-xs tracking-[0.1em] uppercase font-bold bg-[#E8E4DF] text-[#888888] border border-[#D5D0CA] cursor-not-allowed select-none"
+                >
+                  Sold Out / Out of Stock
+                </button>
+              )}
               <button
                 onClick={() => toggleWishlist(product)}
-                className={`w-14 flex items-center justify-center border transition-all ${
+                className={`w-14 flex items-center justify-center border transition-all cursor-pointer ${
                   isWishlisted(product.id)
                     ? 'border-[#C4922A] bg-[#C4922A] text-white'
                     : 'border-[#E8E4DF] text-[#4A4A4A] hover:border-[#C4922A] hover:text-[#C4922A]'

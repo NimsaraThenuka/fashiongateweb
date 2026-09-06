@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Play, ChevronLeft, ChevronRight, Star } from 'lucide-react';
-import { products } from '../data/products';
+import { useProducts } from '../context/ProductContext';
 import ProductCard from '../components/ProductCard';
 import { useReveal } from '../hooks/useReveal';
 import { LampContainer } from '../components/Lamp';
@@ -49,6 +49,13 @@ const COLLECTIONS = [
     href: '/shop?cat=men',
   },
   {
+    label: "Kids'",
+    title: 'Petite Collection',
+    desc: 'Pure comfort, joyful charm',
+    image: 'https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?w=700&h=900&fit=crop&auto=format',
+    href: '/shop?cat=kids',
+  },
+  {
     label: 'Accessories',
     title: 'The Atelier',
     desc: 'Finishing touches, perfectly crafted',
@@ -67,6 +74,7 @@ const TESTIMONIALS = [
 ];
 
 export default function Home() {
+  const { products } = useProducts();
   const [activeSlide, setActiveSlide] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const heroTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -247,13 +255,13 @@ export default function Home() {
       <section className="bg-[#0A0A0A] py-8">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 grid grid-cols-2 md:grid-cols-4 gap-8">
           {[
-            { val: '15+', label: 'Years of Craft' },
-            { val: '200+', label: 'Exclusive Designs' },
-            { val: '50K+', label: 'Happy Clients' },
-            { val: '30+', label: 'Countries Shipped' },
+            { val: 'Men & Women', label: 'Fashion & Lifestyle' },
+            { val: 'Islandwide', label: 'Sri Lanka Delivery' },
+            { val: 'Premium', label: 'Quality Curations' },
+            { val: 'Dedicated', label: 'Customer Support' },
           ].map(({ val, label }) => (
             <div key={label} className="text-center">
-              <p className="shimmer-text font-display text-3xl font-bold">{val}</p>
+              <p className="shimmer-text font-display text-2xl md:text-3xl font-bold">{val}</p>
               <p className="text-white/40 text-xs tracking-[0.15em] uppercase mt-1">{label}</p>
             </div>
           ))}
@@ -273,13 +281,13 @@ export default function Home() {
           </LampContainer>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           {COLLECTIONS.map((col, i) => (
             <Link
               key={col.label}
               to={col.href}
-              className={`group relative overflow-hidden ${i === 0 ? 'reveal-left' : i === 1 ? 'reveal-zoom' : 'reveal-right'}`}
-              style={{ aspectRatio: i === 0 ? '3/4' : '3/4' }}
+              className={`group relative overflow-hidden ${i % 2 === 0 ? 'reveal-left' : 'reveal-right'}`}
+              style={{ aspectRatio: '3/4' }}
             >
               <img
                 src={col.image}
@@ -419,10 +427,10 @@ export default function Home() {
       <section className="border-y border-[#E8E4DF] py-14">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 grid grid-cols-2 md:grid-cols-4 gap-10">
           {[
-            { icon: '✦', title: 'Free Shipping', desc: 'On all orders over Rs. 25,000' },
-            { icon: '◈', title: 'Easy Returns', desc: '30-day free returns' },
-            { icon: '❋', title: 'Authentic Luxury', desc: '100% genuine products' },
-            { icon: '◇', title: 'Secure Payment', desc: 'Encrypted transactions' },
+            { icon: '✦', title: 'Islandwide Delivery', desc: 'Doorstep delivery across Sri Lanka' },
+            { icon: '◈', title: 'Online Shopping', desc: 'Seamless 24/7 shopping experience' },
+            { icon: '❋', title: 'Premium Fashion', desc: "Men's & Women's lifestyle" },
+            { icon: '◇', title: 'Customer Support', desc: '+94 70 773 9962 support' },
           ].map(({ icon, title, desc }) => (
             <div key={title} className="text-center reveal">
               <span className="text-[#C4922A] text-2xl block mb-3">{icon}</span>
@@ -515,30 +523,30 @@ export default function Home() {
         <div className="grid md:grid-cols-2 gap-16 items-center">
           <div className="relative reveal-left">
             <div
-              className="aspect-square"
+              className="aspect-square rounded-sm overflow-hidden shadow-2xl"
               style={{
                 backgroundImage: `url(https://images.unsplash.com/photo-1603400521630-9f2de124b33b?w=800&h=800&fit=crop&auto=format)`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
               }}
             />
-            <div className="absolute -bottom-6 -right-6 bg-[#C4922A] p-8 text-white hidden md:block">
-              <p className="font-display text-4xl font-bold">15</p>
-              <p className="text-xs tracking-[0.15em] uppercase">Years of<br />Excellence</p>
+            <div className="absolute -bottom-6 -right-6 bg-[#0A0A0A] border-l-4 border-[#C4922A] p-6 text-white hidden md:block shadow-xl">
+              <p className="text-[10px] tracking-[0.2em] uppercase text-[#C4922A] mb-1">Tagline</p>
+              <p className="font-display text-xl font-bold">Elevate Your Style</p>
             </div>
           </div>
           <div className="reveal-right text-center md:text-left flex flex-col items-center md:items-start">
             <p className="text-xs text-[#C4922A] tracking-[0.2em] uppercase mb-4 flex items-center justify-center md:justify-start gap-3">
-              <span className="w-8 h-px bg-[#C4922A]" /> Our Story
+              <span className="w-8 h-px bg-[#C4922A]" /> Welcome to Fashion Gate
             </p>
             <h2 className="font-display text-4xl md:text-5xl font-bold text-[#0A0A0A] leading-tight mb-6">
-              A Vision Born <span className="hidden md:inline"><br /></span>from <em>Passion</em>
+              Where True Style <span className="hidden md:inline"><br /></span>is <em>Timeless</em>
             </h2>
             <p className="text-[#4A4A4A] leading-relaxed mb-4 text-center md:text-left">
-              Founded in Colombo in 2018, Fashion Gate was born from a singular vision: that true island luxury lies in the fusion of traditional Sri Lankan heritage crafts and modern, high-end design.
+              At Fashion Gate, we believe that true style is timeless. Our brand is dedicated to offering elegant, high-quality fashion that empowers women to express their confidence with grace.
             </p>
             <p className="text-[#4A4A4A] leading-relaxed mb-8 text-center md:text-left">
-              We collaborate closely with independent local handloom weavers, batik artisans, and traditional craftsmen across the island to bring you curated premium clothing that celebrates tropical elegance and sustainable, slow-fashion values.
+              Every collection is carefully selected to blend comfort, sophistication, and modern trends, ensuring every piece reflects effortless elegance. From everyday essentials to statement outfits, Fashion Gate brings fashion that complements every lifestyle.
             </p>
             <Link to="/about" className="btn-gold inline-flex items-center justify-center gap-2 mx-auto md:mx-0 w-full sm:w-auto">
               Our Story <ArrowRight size={14} />

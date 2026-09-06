@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ShoppingBag, Heart, Search, Menu, X, ChevronDown, Music } from 'lucide-react';
+import { ShoppingBag, Heart, Search, Menu, X, ChevronDown, Music, Truck } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 
@@ -52,6 +52,19 @@ const navLinks = [
       { label: 'Shorts', href: '/shop?cat=men&sub=shorts' },
       { label: 'Jackets', href: '/shop?cat=men&sub=jackets' },
       { label: 'Jeans', href: '/shop?cat=men&sub=jeans' },
+    ]
+  },
+  {
+    label: "Kids'",
+    href: '/shop?cat=kids',
+    isMegamenu: false,
+    sub: [
+      { label: 'New In', href: '/shop?cat=kids&tag=new' },
+      { label: "Girls' Dresses", href: '/shop?cat=kids&sub=dresses' },
+      { label: "Boys' Shirts", href: '/shop?cat=kids&sub=shirts' },
+      { label: 'Sets & Festive Wear', href: '/shop?cat=kids&sub=sets' },
+      { label: 'Shorts & Casuals', href: '/shop?cat=kids&sub=shorts' },
+      { label: 'All Kids', href: '/shop?cat=kids' },
     ]
   },
   {
@@ -230,9 +243,9 @@ export default function Navbar() {
 
             return (
               <>
-                {/* Desktop Nav Links (Left block - first 4 links) */}
-                <div className="hidden md:flex items-center gap-6 lg:gap-8 z-10">
-                  {navLinks.slice(0, 4).map(link => renderLink(link))}
+                {/* Desktop Nav Links (Left block - 5 links: Home, Women's, Men's, Kids', Collections) */}
+                <div className="hidden md:flex items-center gap-4 lg:gap-6 xl:gap-7 z-10">
+                  {navLinks.slice(0, 5).map(link => renderLink(link))}
                 </div>
 
                 {/* Logo Center */}
@@ -245,9 +258,9 @@ export default function Navbar() {
                   />
                 </Link>
 
-                {/* Desktop Nav Links (Right block - remaining links) */}
-                <div className="hidden md:flex items-center gap-6 lg:gap-8 z-10 ml-auto mr-4 lg:mr-6">
-                  {navLinks.slice(4).map(link => renderLink(link))}
+                {/* Desktop Nav Links (Right block - remaining 3 links: Gallery, About, Contact) */}
+                <div className="hidden md:flex items-center gap-5 lg:gap-7 xl:gap-8 z-10 ml-auto mr-4 lg:mr-6">
+                  {navLinks.slice(5).map(link => renderLink(link))}
                 </div>
               </>
             );
@@ -262,6 +275,17 @@ export default function Navbar() {
             >
               <Search size={19} />
             </button>
+
+            {/* Order Tracking Quick Link */}
+            <Link
+              to="/order-tracking"
+              className={`relative ${textColor} hover:text-[#C4922A] transition-colors p-1.5 hidden md:flex items-center`}
+              title="Track Your Order"
+              aria-label="Track Order"
+            >
+              <Truck size={19} />
+            </Link>
+
             <Link
               to="/wishlist"
               className={`relative ${textColor} hover:text-[#C4922A] transition-colors p-1.5 hidden md:flex`}
@@ -406,6 +430,26 @@ export default function Navbar() {
                 </div>
               );
             })}
+
+            {/* Direct Mobile Links for Tracking & My Orders */}
+            <div className="border-t border-[#E8E4DF]/60 pt-4 flex flex-col gap-3">
+              <Link
+                to="/order-tracking"
+                className="flex items-center gap-2.5 text-sm font-semibold text-[#0A0A0A] hover:text-[#C4922A] py-1.5"
+                onClick={() => setMenuOpen(false)}
+              >
+                <Truck size={16} className="text-[#C4922A]" />
+                <span>Track Live Order</span>
+              </Link>
+              <Link
+                to="/my-orders"
+                className="flex items-center gap-2.5 text-sm font-semibold text-[#0A0A0A] hover:text-[#C4922A] py-1.5"
+                onClick={() => setMenuOpen(false)}
+              >
+                <ShoppingBag size={16} className="text-[#C4922A]" />
+                <span>My Past Orders</span>
+              </Link>
+            </div>
           </nav>
           <div className="px-6 py-8 border-t border-[#E8E4DF] flex flex-col gap-3">
             <Link to="/cart" className="btn-gold text-center">

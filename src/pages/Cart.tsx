@@ -172,9 +172,9 @@ export default function Cart() {
               </p>
             )}
             <div className="mt-4 flex flex-col gap-3">
-              <button className="btn-gold w-full flex items-center justify-center gap-2 cursor-pointer">
-                Proceed to Checkout <ArrowRight size={14} />
-              </button>
+              <Link to="/checkout" className="btn-gold w-full flex items-center justify-center gap-2 cursor-pointer text-center">
+                <span>Proceed to Checkout</span> <ArrowRight size={14} />
+              </Link>
               <Link to="/shop" className="btn-outline-gold text-center block">
                 <span>Continue Shopping</span>
               </Link>

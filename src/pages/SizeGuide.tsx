@@ -50,7 +50,7 @@ export default function SizeGuide() {
         </div>
 
         {/* Men Table */}
-        <div className="reveal">
+        <div className="mb-16 reveal">
           <h2 className="font-display text-2xl font-bold text-[#0A0A0A] mb-6 border-b border-[#E8E4DF] pb-3">Men's Clothing</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-sm">
@@ -77,6 +77,41 @@ export default function SizeGuide() {
                     <td className="py-4 px-4">{row.waist}</td>
                     <td className="py-4 px-4">{row.collar}</td>
                     <td className="py-4 pl-4 text-right font-medium text-[#C4922A]">{row.fit}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Kids Table */}
+        <div className="reveal">
+          <h2 className="font-display text-2xl font-bold text-[#0A0A0A] mb-6 border-b border-[#E8E4DF] pb-3">Kids' Clothing</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-sm">
+              <thead>
+                <tr className="border-b border-[#E8E4DF] text-xs tracking-[0.15em] uppercase text-[#9E9E9E] font-semibold">
+                  <th className="py-4 pr-4">Age / Size</th>
+                  <th className="py-4 px-4">Height (cm)</th>
+                  <th className="py-4 px-4">Chest (inches)</th>
+                  <th className="py-4 px-4">Waist (inches)</th>
+                  <th className="py-4 pl-4 text-right">Recommended Age</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#E8E4DF]/60 text-[#4A4A4A]">
+                {[
+                  { size: '2-3Y', height: '92 - 98', chest: '20 - 21', waist: '19 - 20', age: '2 – 3 Years' },
+                  { size: '4-5Y', height: '104 - 110', chest: '22 - 23', waist: '21 - 22', age: '4 – 5 Years' },
+                  { size: '6-7Y', height: '116 - 122', chest: '24 - 25', waist: '22 - 23', age: '6 – 7 Years' },
+                  { size: '8-9Y', height: '128 - 134', chest: '26 - 27', waist: '23 - 24', age: '8 – 9 Years' },
+                  { size: '10-12Y', height: '140 - 152', chest: '28 - 30', waist: '25 - 26', age: '10 – 12 Years' },
+                ].map((row, idx) => (
+                  <tr key={idx} className="hover:bg-[#FAFAF8] transition-colors">
+                    <td className="py-4 pr-4 font-semibold text-[#0A0A0A]">{row.size}</td>
+                    <td className="py-4 px-4">{row.height}</td>
+                    <td className="py-4 px-4">{row.chest}</td>
+                    <td className="py-4 px-4">{row.waist}</td>
+                    <td className="py-4 pl-4 text-right font-medium text-[#C4922A]">{row.age}</td>
                   </tr>
                 ))}
               </tbody>

@@ -49,7 +49,7 @@ export default function ShippingReturns() {
               <MapPin size={16} className="text-[#C4922A]" /> Collect In-Store (Kotte Boutique)
             </h3>
             <p className="text-sm text-[#4A4A4A] leading-relaxed">
-              Skip the delivery queue! Place your order online, choose "Store Pickup" at checkout, and collect it from our boutique in Madiwela, Kotte. Ready in just 2 hours.
+              Skip the delivery queue! Place your order online, choose "Store Pickup" at checkout, and collect it directly from our boutique at 459A 1/1, Thalawathugoda Road, Madiwela, Kotte. Ready in just 2 hours.
             </p>
           </div>
           <div className="flex items-center gap-2 text-xs text-[#9E9E9E] font-semibold tracking-wider uppercase border border-[#E8E4DF] px-4 py-3 bg-white">

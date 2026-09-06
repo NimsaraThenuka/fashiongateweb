@@ -1,5 +1,5 @@
 import { useReveal } from '../hooks/useReveal';
-import { Sparkles, Sun, Droplets, Info } from 'lucide-react';
+import { Info } from 'lucide-react';
 
 export default function CareInstructions() {
   useReveal();

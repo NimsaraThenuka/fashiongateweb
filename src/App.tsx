@@ -1,15 +1,22 @@
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { motion, useScroll, AnimatePresence } from 'framer-motion';
 import { ArrowUp } from 'lucide-react';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
+import { ProductProvider } from './context/ProductContext';
+import { OrderProvider } from './context/OrderContext';
+import { AdminAuthProvider } from './context/AdminAuthContext';
+import { AdminRoute } from './components/admin/AdminRoute';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
 import Shop from './pages/Shop';
 import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/Cart';
+import Checkout from './pages/Checkout';
+import OrderConfirmation from './pages/OrderConfirmation';
+import MyOrders from './pages/MyOrders';
 import Wishlist from './pages/Wishlist';
 import About from './pages/About';
 import Contact from './pages/Contact';
@@ -22,6 +29,8 @@ import Sustainability from './pages/Sustainability';
 import GiftCards from './pages/GiftCards';
 import Legal from './pages/Legal';
 import Gallery from './pages/Gallery';
+import AdminLogin from './pages/admin/AdminLogin';
+import AdminDashboard from './pages/admin/AdminDashboard';
 
 function ScrollToTop() {
   const { pathname, search } = useLocation();
@@ -36,6 +45,9 @@ function ScrollToTop() {
 function Layout() {
   const { scrollYProgress } = useScroll();
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const location = useLocation();
+
+  const isAdminRoute = location.pathname.startsWith('/admin');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -56,6 +68,26 @@ function Layout() {
     });
   };
 
+  if (isAdminRoute) {
+    return (
+      <div className="min-h-screen bg-[#0A0A0A] text-white">
+        <ScrollToTop />
+        <Routes>
+          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route
+            path="/admin/dashboard"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            }
+          />
+        </Routes>
+      </div>
+    );
+  }
+
   return (
     <>
       {/* Global Left-Edge Scroll Progress Gauge */}
@@ -74,6 +106,9 @@ function Layout() {
           <Route path="/shop" element={<Shop />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
+          <Route path="/my-orders" element={<MyOrders />} />
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
@@ -112,11 +147,17 @@ function Layout() {
 export default function App() {
   return (
     <BrowserRouter>
-      <CartProvider>
-        <WishlistProvider>
-          <Layout />
-        </WishlistProvider>
-      </CartProvider>
+      <AdminAuthProvider>
+        <ProductProvider>
+          <OrderProvider>
+            <CartProvider>
+              <WishlistProvider>
+                <Layout />
+              </WishlistProvider>
+            </CartProvider>
+          </OrderProvider>
+        </ProductProvider>
+      </AdminAuthProvider>
     </BrowserRouter>
   );
 }

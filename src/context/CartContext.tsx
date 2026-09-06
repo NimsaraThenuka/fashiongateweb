@@ -23,6 +23,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
 
   const addToCart = (product: Product, size: string, color: string) => {
+    if (product.inStock === false) {
+      return;
+    }
     setItems(prev => {
       const existing = prev.find(i => i.id === product.id && i.selectedSize === size && i.selectedColor === color);
       if (existing) {

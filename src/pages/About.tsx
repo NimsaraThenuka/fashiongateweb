@@ -1,13 +1,34 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Sparkles, Compass, Heart, Truck, ShoppingBag, Headphones, MapPin, Phone, Mail, Award, CheckCircle2 } from 'lucide-react';
 import { useReveal } from '../hooks/useReveal';
 import { Timeline } from '../components/Timeline';
 
-const VALUES = [
-  { icon: '◈', title: 'Craftsmanship', desc: 'Every piece we carry meets our rigorous standards of construction, material quality, and artisanal integrity.' },
-  { icon: '✦', title: 'Sustainability', desc: 'We champion designers committed to ethical production, responsible sourcing, and a reduced environmental footprint.' },
-  { icon: '❋', title: 'Inclusivity', desc: 'Fashion is for every body. Our curations span a full range of sizes and celebrate diverse expressions of personal style.' },
-  { icon: '◇', title: 'Heritage', desc: 'We honour tradition while embracing innovation — supporting established houses and emerging designers alike.' },
+const SERVICES = [
+  {
+    icon: Sparkles,
+    title: "Premium Men's & Women's Fashion",
+    desc: 'Carefully curated collections blending comfort, sophistication, and modern trends for every wardrobe.',
+  },
+  {
+    icon: ShoppingBag,
+    title: 'Online Shopping',
+    desc: 'A seamless, intuitive digital shopping experience available 24/7 with secure payment options.',
+  },
+  {
+    icon: Truck,
+    title: 'Islandwide Delivery',
+    desc: 'Reliable doorstep courier delivery across all 25 districts in Sri Lanka.',
+  },
+  {
+    icon: Headphones,
+    title: 'Customer Support',
+    desc: 'Dedicated assistance and styling guidance to make your shopping journey effortless.',
+  },
+  {
+    icon: Award,
+    title: 'New Arrivals & Seasonal Collections',
+    desc: 'Continuously refreshed fashion edits to keep you ahead of contemporary trends.',
+  },
 ];
 
 export default function About() {
@@ -24,105 +45,125 @@ export default function About() {
           backgroundPosition: 'center',
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-black/30" />
         <div className="relative max-w-[1400px] mx-auto px-6 md:px-10 py-24">
-          <div className="max-w-xl reveal">
+          <div className="max-w-2xl reveal">
             <p className="text-xs text-[#E8B84B] tracking-[0.25em] uppercase mb-5 flex items-center gap-3">
-              <span className="w-8 h-px bg-[#C4922A]" /> Our Story
+              <span className="w-8 h-px bg-[#C4922A]" /> Fashion Gate – Elevate Your Style
             </p>
             <h1 className="font-display text-5xl md:text-7xl font-bold text-white leading-[1.05] mb-6">
-              Where Style<br />Meets <em>Soul</em>
+              Welcome to<br /><em>Fashion Gate</em>
             </h1>
-            <p className="text-white/70 text-lg leading-relaxed">
-              Fashion Gate was founded on the belief that great style is a form of self-expression — and that everyone deserves access to truly exceptional clothing.
+            <p className="text-white/80 text-lg md:text-xl leading-relaxed font-light">
+              At Fashion Gate, we believe that true style is timeless. Our brand is dedicated to offering elegant, high-quality fashion that empowers women to express their confidence with grace.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Mission */}
-      <section className="py-24 md:py-32">
+      {/* Main Story & Philosophy */}
+      <section className="py-20 md:py-28">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 grid md:grid-cols-2 gap-16 items-center">
           <div className="reveal text-center md:text-left flex flex-col items-center md:items-start">
             <p className="text-xs text-[#C4922A] tracking-[0.2em] uppercase mb-4 flex items-center justify-center md:justify-start gap-3">
-              <span className="w-8 h-px bg-[#C4922A]" /> Founded 2018, Colombo
+              <span className="w-8 h-px bg-[#C4922A]" /> About Us
             </p>
             <h2 className="font-display text-4xl md:text-5xl font-bold text-[#0A0A0A] leading-tight mb-6">
-              The Gate Opens <span className="hidden md:inline"><br /></span>to <em>Island Luxury</em>
+              Timeless Elegance, <span className="hidden md:inline"><br /></span>Modern <em>Grace</em>
             </h2>
             <p className="text-[#4A4A4A] leading-relaxed mb-4 text-center md:text-left">
-              Fashion Gate began as a small design studio in Colombo, Sri Lanka — showcasing a carefully curated selection of pieces that blended traditional Sri Lankan handloom weaving and batik dye crafts with contemporary fashion silhouettes. Our founder, believed that garments should not only capture tropical beauty but carry the stories of the artisans who made them.
+              Every collection is carefully selected to blend comfort, sophistication, and modern trends, ensuring every piece reflects effortless elegance. From everyday essentials to statement outfits, Fashion Gate brings fashion that complements every lifestyle.
             </p>
             <p className="text-[#4A4A4A] leading-relaxed mb-8 text-center md:text-left">
-              Today, we serve customers nationwide and design conscious collections in collaboration with craft clusters across the island, staying true to our core principles of local heritage, slow fashion, and uncompromising quality.
+              We are committed to providing exceptional customer service, premium-quality products, and a seamless shopping experience, making Fashion Gate your trusted destination for contemporary fashion.
             </p>
+
+            {/* Quick Highlights */}
             <div className="grid grid-cols-3 gap-6 py-8 border-y border-[#E8E4DF] w-full">
               {[
-                { val: '2018', label: 'Founded' },
-                { val: '120+', label: 'Artisans' },
-                { val: '100%', label: 'Conscious' },
+                { val: 'Premium', label: "Men's & Women's" },
+                { val: 'Islandwide', label: 'Sri Lanka Delivery' },
+                { val: '100%', label: 'Quality Assured' },
               ].map(({ val, label }) => (
                 <div key={label} className="text-center">
-                  <p className="font-display text-2xl md:text-3xl font-bold text-[#C4922A]">{val}</p>
+                  <p className="font-display text-xl md:text-2xl font-bold text-[#C4922A]">{val}</p>
                   <p className="text-[10px] md:text-xs text-[#9E9E9E] tracking-[0.1em] uppercase mt-1">{label}</p>
                 </div>
               ))}
             </div>
           </div>
+
           <div className="relative reveal delay-200">
             <div
-              className="aspect-[4/5]"
+              className="aspect-[4/5] rounded-sm overflow-hidden shadow-2xl"
               style={{
                 backgroundImage: `url(https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=800&h=1000&fit=crop&auto=format)`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
               }}
             />
-            <div className="absolute -bottom-6 -left-6 bg-[#0A0A0A] p-6 text-white hidden md:block">
-              <p className="text-xs tracking-[0.15em] uppercase text-[#C4922A] mb-1">Est.</p>
-              <p className="font-display text-5xl font-bold">2018</p>
+            <div className="absolute -bottom-6 -left-6 bg-[#0A0A0A] p-6 text-white hidden md:block border-l-4 border-[#C4922A] shadow-xl">
+              <p className="text-xs tracking-[0.15em] uppercase text-[#C4922A] mb-1">Tagline</p>
+              <p className="font-display text-xl font-bold">Elevate Your Style</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Values */}
-      <section className="py-20 md:py-28 bg-[#FAFAF8]">
+      {/* Mission & Vision Section */}
+      <section className="py-20 md:py-28 bg-[#FAFAF8] border-y border-[#E8E4DF]">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10">
           <div className="text-center mb-16 reveal">
-            <p className="text-xs text-[#C4922A] tracking-[0.2em] uppercase mb-3">What Guides Us</p>
-            <h2 className="font-display text-4xl md:text-5xl font-bold text-[#0A0A0A]">Our Values</h2>
+            <p className="text-xs text-[#C4922A] tracking-[0.2em] uppercase mb-3">Our Purpose & Direction</p>
+            <h2 className="font-display text-4xl md:text-5xl font-bold text-[#0A0A0A]">Mission & Vision</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {VALUES.map(({ icon, title, desc }, i) => (
-              <div key={title} className={`reveal ${i === 0 ? '' : i === 1 ? 'delay-100' : i === 2 ? 'delay-200' : 'delay-300'}`}>
-                <span className="text-3xl text-[#C4922A] block mb-4">{icon}</span>
-                <h3 className="font-display text-xl font-bold text-[#0A0A0A] mb-3">{title}</h3>
-                <p className="text-[#4A4A4A] text-sm leading-relaxed">{desc}</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            {/* Mission Card */}
+            <div className="bg-white p-8 md:p-10 border border-[#E8E4DF] rounded-sm relative overflow-hidden group hover:border-[#C4922A] transition-all shadow-sm reveal-left">
+              <div className="w-12 h-12 bg-[#FAFAF8] border border-[#C4922A] rounded-full flex items-center justify-center text-[#C4922A] mb-6 group-hover:bg-[#C4922A] group-hover:text-white transition-all">
+                <Heart size={22} />
               </div>
-            ))}
+              <p className="text-xs font-mono tracking-[0.2em] uppercase text-[#C4922A] mb-2">Our Core Purpose</p>
+              <h3 className="font-display text-3xl font-bold text-[#0A0A0A] mb-4">Our Mission</h3>
+              <p className="text-[#4A4A4A] leading-relaxed text-base">
+                To inspire confidence by delivering elegant, high-quality, and affordable fashion for every woman.
+              </p>
+            </div>
+
+            {/* Vision Card */}
+            <div className="bg-white p-8 md:p-10 border border-[#E8E4DF] rounded-sm relative overflow-hidden group hover:border-[#C4922A] transition-all shadow-sm reveal-right">
+              <div className="w-12 h-12 bg-[#FAFAF8] border border-[#C4922A] rounded-full flex items-center justify-center text-[#C4922A] mb-6 group-hover:bg-[#C4922A] group-hover:text-white transition-all">
+                <Compass size={22} />
+              </div>
+              <p className="text-xs font-mono tracking-[0.2em] uppercase text-[#C4922A] mb-2">Our Aspiration</p>
+              <h3 className="font-display text-3xl font-bold text-[#0A0A0A] mb-4">Our Vision</h3>
+              <p className="text-[#4A4A4A] leading-relaxed text-base">
+                To become Sri Lanka's leading online fashion destination, recognized for elegance, quality, and customer satisfaction.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* PROCESS TIMELINE */}
+      {/* INTERACTIVE SCROLL TIMELINE */}
       <Timeline data={[
         {
-          title: "Sourcing",
+          title: "Sourcing & Curation",
           content: (
             <div className="flex flex-col gap-6">
               <p className="text-white/70 text-sm md:text-base font-normal max-w-xl leading-relaxed">
-                We source raw, organic cotton, local bamboo fibers, and premium Irish linen. We partner directly with independent farming collectives across the island to ensure ethical harvesting.
+                We select premium fabrics, breathable linens, fine cotton blends, and modern silhouettes. Every piece is curated to meet our standards of lasting comfort, durability, and elegance.
               </p>
               <div className="grid grid-cols-2 gap-4 max-w-2xl">
                 <img
                   src="https://images.unsplash.com/photo-1589363358751-ab05797e5629?w=600&h=800&fit=crop&auto=format"
-                  alt="Organic raw material sourcing"
+                  alt="Raw material curation"
                   className="h-28 w-full rounded-xs object-cover shadow-[0_0_24px_rgba(196,146,42,0.15)] md:h-48 lg:h-60"
                 />
                 <img
                   src="https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=600&h=800&fit=crop&auto=format"
-                  alt="Artisan loom prep"
+                  alt="Fabric selection"
                   className="h-28 w-full rounded-xs object-cover shadow-[0_0_24px_rgba(196,146,42,0.15)] md:h-48 lg:h-60"
                 />
               </div>
@@ -130,21 +171,21 @@ export default function About() {
           )
         },
         {
-          title: "Weaving & Dyeing",
+          title: "Craft & Tailoring",
           content: (
             <div className="flex flex-col gap-6">
               <p className="text-white/70 text-sm md:text-base font-normal max-w-xl leading-relaxed">
-                Rural weaving clusters translate fibers into textiles on hand-operated wooden looms. Our batik pieces undergo a meticulous resist-dyeing process where hot liquid wax is hand-painted before deep cold-dye immersion.
+                From precision pattern-making to refined stitching, our garments are crafted with meticulous attention to fit and finish—creating pieces that blend sophistication with effortless everyday wear.
               </p>
               <div className="grid grid-cols-2 gap-4 max-w-2xl">
                 <img
                   src="https://images.unsplash.com/photo-1617127365659-c47fa864d8bc?w=600&h=800&fit=crop&auto=format"
-                  alt="Traditional handloom weaving"
+                  alt="Precision garment construction"
                   className="h-28 w-full rounded-xs object-cover shadow-[0_0_24px_rgba(196,146,42,0.15)] md:h-48 lg:h-60"
                 />
                 <img
                   src="https://images.unsplash.com/photo-1705909237050-7a7625b47fac?w=600&h=800&fit=crop&auto=format"
-                  alt="Batik hand-painting"
+                  alt="Detailing and texture"
                   className="h-28 w-full rounded-xs object-cover shadow-[0_0_24px_rgba(196,146,42,0.15)] md:h-48 lg:h-60"
                 />
               </div>
@@ -152,21 +193,21 @@ export default function About() {
           )
         },
         {
-          title: "Stitching & Atelier",
+          title: "Atelier & Experience",
           content: (
             <div className="flex flex-col gap-6">
               <p className="text-white/70 text-sm md:text-base font-normal max-w-xl leading-relaxed">
-                The fabrics are gathered in our Colombo design studio. Pattern-makers and master tailors structure, cut, and sew every blazer, dress, and shirt. Gold-embellished thread details and natural wood buttons are hand-assembled.
+                Finished collections arrive at our boutique in Madiwela, Kotte. Each order is inspected, delicately packaged, and dispatched for reliable doorstep delivery across Sri Lanka.
               </p>
               <div className="grid grid-cols-2 gap-4 max-w-2xl">
                 <img
                   src="https://images.unsplash.com/photo-1618886614638-80e3c103d31a?w=600&h=800&fit=crop&auto=format"
-                  alt="Precision bespoke cutting"
+                  alt="Atelier fitting and quality check"
                   className="h-28 w-full rounded-xs object-cover shadow-[0_0_24px_rgba(196,146,42,0.15)] md:h-48 lg:h-60"
                 />
                 <img
                   src="https://images.unsplash.com/photo-1779154137940-a251f8c92b10?w=600&h=800&fit=crop&auto=format"
-                  alt="Atelier final assembly"
+                  alt="Final styling and presentation"
                   className="h-28 w-full rounded-xs object-cover shadow-[0_0_24px_rgba(196,146,42,0.15)] md:h-48 lg:h-60"
                 />
               </div>
@@ -175,68 +216,114 @@ export default function About() {
         }
       ]} />
 
-      {/* MESSAGE FROM CEO */}
+      {/* Services Grid */}
       <section className="py-20 md:py-28 max-w-[1400px] mx-auto px-6 md:px-10">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-16 items-center">
-          {/* Portrait Image with Gold Accents */}
-          <div className="col-span-1 md:col-span-5 max-w-[280px] sm:max-w-sm mx-auto md:max-w-none w-full relative group reveal mb-10 md:mb-0">
-            <div className="absolute inset-3 md:inset-4 border border-[#C4922A] translate-x-1.5 translate-y-1.5 md:translate-x-2 md:translate-y-2 group-hover:translate-x-0 group-hover:translate-y-0 transition-transform duration-500 rounded-sm pointer-events-none" />
-            <div className="relative aspect-[3/4] bg-[#F2F0ED] overflow-hidden rounded-sm shadow-xl">
-              <img
-                src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=600&h=800&fit=crop&auto=format"
-                alt="CEO Portrait"
-                className="w-full h-full object-cover grayscale contrast-[1.05] transition-transform duration-[3000ms] group-hover:scale-103"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A]/50 to-transparent" />
-            </div>
-            {/* Embedded Badge */}
-            <div className="absolute -bottom-3 -right-3 md:-bottom-4 md:-right-4 bg-[#C4922A] px-4 py-3 md:px-6 md:py-4 text-white shadow-lg rounded-sm">
-              <p className="font-display text-base md:text-xl font-bold tracking-widest">VISION</p>
-              <p className="text-[8px] md:text-[9px] uppercase tracking-widest text-white/80">Est. 2018</p>
-            </div>
-          </div>
+        <div className="text-center mb-16 reveal">
+          <p className="text-xs text-[#C4922A] tracking-[0.2em] uppercase mb-3">What We Offer</p>
+          <h2 className="font-display text-4xl md:text-5xl font-bold text-[#0A0A0A]">Our Services</h2>
+          <p className="text-sm text-[#9E9E9E] mt-3 max-w-lg mx-auto">
+            Comprehensive fashion solutions tailored for modern style enthusiasts across Sri Lanka.
+          </p>
+        </div>
 
-          {/* Letter / Quote Content */}
-          <div className="col-span-1 md:col-span-7 flex flex-col items-center md:items-start text-center md:text-left reveal-right">
-            <p className="text-xs text-[#C4922A] tracking-[0.25em] uppercase mb-4 flex items-center justify-center md:justify-start gap-3">
-              <span className="w-8 h-px bg-[#C4922A]" /> A Personal Note
-            </p>
-            <h2 className="font-display text-3xl md:text-5xl font-bold text-[#0A0A0A] leading-tight mb-8">
-              Letter from <em>the CEO</em>
-            </h2>
-            
-            {/* Large quotation block */}
-            <div className="relative mb-6">
-              <span className="absolute -top-8 -left-4 font-display text-8xl text-[#C4922A]/10 select-none pointer-events-none">“</span>
-              <p className="font-display text-lg md:text-xl italic text-[#4A4A4A] leading-relaxed relative z-10">
-                At Fashion Gate, our mission has always transcended simply offering garments. We believe that what you wear is a reflection of your soul, your values, and your story.
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {SERVICES.map(({ icon: Icon, title, desc }, idx) => (
+            <div
+              key={title}
+              className={`border border-[#E8E4DF] p-8 rounded-sm bg-white hover:border-[#C4922A] hover:shadow-lg transition-all reveal ${
+                idx % 2 === 0 ? '' : 'delay-100'
+              }`}
+            >
+              <div className="w-10 h-10 bg-[#FAFAF8] border border-[#C4922A]/40 flex items-center justify-center text-[#C4922A] mb-5">
+                <Icon size={18} />
+              </div>
+              <h3 className="font-display text-lg font-bold text-[#0A0A0A] mb-2">{title}</h3>
+              <p className="text-xs md:text-sm text-[#4A4A4A] leading-relaxed">{desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Business Details & Boutique Info */}
+      <section className="py-16 md:py-24 bg-[#0A0A0A] text-white">
+        <div className="max-w-[1400px] mx-auto px-6 md:px-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div className="reveal">
+              <p className="text-xs text-[#C4922A] tracking-[0.25em] uppercase mb-3 flex items-center gap-3">
+                <span className="w-8 h-px bg-[#C4922A]" /> Business Details
               </p>
-            </div>
-            
-            <p className="text-[#666666] text-sm md:text-base leading-relaxed mb-6">
-              We set out to bridge the gap between traditional Sri Lankan craftsmanship and contemporary global luxury—creating a gateway where slow fashion, artisan empowerment, and high-end design coexist.
-            </p>
-            <p className="text-[#666666] text-sm md:text-base leading-relaxed mb-8">
-              We collaborate directly with rural clusters of handloom weavers, batik dyers, and brass smiths across the island. Every thread you wear carries the story, the warmth, and the pride of their heritage. Thank you for stepping into our gate and carrying their legacy forward.
-            </p>
+              <h2 className="font-display text-3xl md:text-5xl font-bold text-white leading-tight mb-6">
+                Fashion Gate <em>Boutique</em>
+              </h2>
+              <p className="text-white/70 text-sm md:text-base leading-relaxed mb-8">
+                Specialized in Men's & Women's Fashion & Lifestyle. We are committed to serving you with high-touch personal customer care both online and in-store.
+              </p>
 
-            {/* Signature Block */}
-            <div className="border-t border-[#E8E4DF] pt-6 w-full max-w-[200px]">
-              <p className="font-display text-lg italic text-[#0A0A0A] font-semibold">Founder &amp; CEO</p>
-              <p className="text-[10px] text-[#C4922A] tracking-[0.15em] uppercase mt-1">Fashion Gate Sri Lanka</p>
+              <div className="space-y-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-9 h-9 border border-[#C4922A] flex items-center justify-center shrink-0 text-[#C4922A]">
+                    <MapPin size={16} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] tracking-[0.15em] uppercase text-[#C4922A] font-semibold">Location</p>
+                    <p className="text-sm text-white/90">459A 1/1, Thalawathugoda Road, Madiwela, Kotte, Sri Lanka</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <div className="w-9 h-9 border border-[#C4922A] flex items-center justify-center shrink-0 text-[#C4922A]">
+                    <Phone size={16} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] tracking-[0.15em] uppercase text-[#C4922A] font-semibold">Contact Number</p>
+                    <a href="tel:+94707739962" className="text-sm text-white/90 hover:text-[#C4922A] transition-colors">+94 70 773 9962</a>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <div className="w-9 h-9 border border-[#C4922A] flex items-center justify-center shrink-0 text-[#C4922A]">
+                    <Mail size={16} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] tracking-[0.15em] uppercase text-[#C4922A] font-semibold">Email Address</p>
+                    <a href="mailto:fashiongate777@gmail.com" className="text-sm text-white/90 hover:text-[#C4922A] transition-colors">fashiongate777@gmail.com</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Visual card */}
+            <div className="border border-white/15 p-8 bg-white/5 backdrop-blur-sm rounded-sm reveal-right">
+              <h3 className="font-display text-2xl font-bold text-white mb-4">Specialization</h3>
+              <p className="text-sm text-white/70 leading-relaxed mb-6">
+                Men's & Women's Fashion & Lifestyle — blending everyday essentials with standout statement wear.
+              </p>
+              <div className="space-y-3 border-t border-white/10 pt-6">
+                {[
+                  'Contemporary Men’s & Women’s Collections',
+                  'Islandwide Doorstep Delivery across Sri Lanka',
+                  'Exceptional Customer Care & Personalized Sizing Support',
+                  'Curated Elegance, Comfort & Modern Trends'
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <CheckCircle2 size={16} className="text-[#C4922A] shrink-0" />
+                    <span className="text-xs md:text-sm text-white/80">{item}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-20 bg-[#0A0A0A] text-center">
+      <section className="py-20 bg-white text-center border-t border-[#E8E4DF]">
         <div className="max-w-xl mx-auto px-6 reveal">
-          <p className="text-xs text-[#C4922A] tracking-[0.2em] uppercase mb-4">Ready to begin?</p>
-          <h2 className="font-display text-4xl md:text-5xl font-bold text-white mb-6">
+          <p className="text-xs text-[#C4922A] tracking-[0.2em] uppercase mb-4">Fashion Gate – Elevate Your Style</p>
+          <h2 className="font-display text-4xl md:text-5xl font-bold text-[#0A0A0A] mb-6">
             Enter the Gate
           </h2>
-          <p className="text-white/60 mb-10">Explore our curated collections and find the pieces that tell your story.</p>
+          <p className="text-[#4A4A4A] mb-10 text-sm md:text-base">Explore our curated collections and find the pieces that express your confidence with grace.</p>
           <Link to="/shop" className="btn-gold inline-flex items-center gap-2">
             Shop Now <ArrowRight size={14} />
           </Link>

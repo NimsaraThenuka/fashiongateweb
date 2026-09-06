@@ -49,8 +49,8 @@ export default function Contact() {
 
           <div className="flex flex-col gap-6 mb-10">
             {[
-              { Icon: MapPin, title: 'Our Boutique', lines: ['459A 1/1, Thalawathugoda Rd', 'Madiwela, Kotte, Sri Lanka'] },
-              { Icon: Phone, title: 'Telephone', lines: ['070 773 9962'] },
+              { Icon: MapPin, title: 'Our Boutique', lines: ['459A 1/1, Thalawathugoda Road', 'Madiwela, Kotte, Sri Lanka'] },
+              { Icon: Phone, title: 'Telephone', lines: ['+94 70 773 9962'] },
               { Icon: Mail, title: 'Email', lines: ['fashiongate777@gmail.com'] },
               { Icon: Clock, title: 'Opening Hours', lines: ['Mon – Sat: 9:30am – 7:30pm', 'Sun: Closed'] },
             ].map(({ Icon, title, lines }) => (

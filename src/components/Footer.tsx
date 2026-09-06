@@ -59,7 +59,7 @@ export default function Footer() {
         <div className="col-span-2 md:col-span-1">
           <img src={LOGO_URL} alt="Fashion Gate" className="h-16 w-auto object-contain mb-6 brightness-0 invert" />
           <p className="text-white/50 text-sm leading-relaxed mb-6 max-w-xs">
-            Where style meets elegance. Fashion Gate curates the finest in contemporary luxury clothing and accessories for the discerning wardrobe.
+            Fashion Gate – Elevate Your Style. Dedicated to offering elegant, high-quality Men's &amp; Women's fashion and lifestyle collections with islandwide delivery across Sri Lanka.
           </p>
           <div className="flex gap-3">
             {[
@@ -125,6 +125,7 @@ export default function Footer() {
               { label: "New Arrivals", href: "/shop?cat=new" },
               { label: "Women's Collection", href: "/shop?cat=women" },
               { label: "Men's Collection", href: "/shop?cat=men" },
+              { label: "Kids' Collection", href: "/shop?cat=kids" },
               { label: "Accessories", href: "/shop?cat=accessories" },
               { label: "Gift Cards", href: "/gift-cards" }
             ].map(l => (
@@ -143,6 +144,7 @@ export default function Footer() {
               { label: "Size Guide", href: "/size-guide" },
               { label: "Shipping & Returns", href: "/shipping-returns" },
               { label: "Order Tracking", href: "/order-tracking" },
+              { label: "My Orders", href: "/my-orders" },
               { label: "Care Instructions", href: "/care-instructions" },
               { label: "FAQ", href: "/faq" },
               { label: "Sustainability", href: "/sustainability" }
@@ -160,15 +162,15 @@ export default function Footer() {
           <ul className="flex flex-col gap-4">
             <li className="flex items-start gap-3 text-sm text-white/50">
               <MapPin size={14} className="text-[#C4922A] mt-0.5 shrink-0" />
-              <span>459A 1/1, Thalawathugoda Rd,<br />Madiwela, Kotte, Sri Lanka</span>
+              <span>459A 1/1, Thalawathugoda Road,<br />Madiwela, Kotte, Sri Lanka</span>
             </li>
             <li className="flex items-center gap-3 text-sm text-white/50">
               <Phone size={14} className="text-[#C4922A] shrink-0" />
-              070 773 9962
+              <a href="tel:+94707739962" className="hover:text-[#C4922A] transition-colors">+94 70 773 9962</a>
             </li>
             <li className="flex items-center gap-3 text-sm text-white/50">
               <Mail size={14} className="text-[#C4922A] shrink-0" />
-              fashiongate777@gmail.com
+              <a href="mailto:fashiongate777@gmail.com" className="hover:text-[#C4922A] transition-colors">fashiongate777@gmail.com</a>
             </li>
           </ul>
         </div>

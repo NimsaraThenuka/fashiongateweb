@@ -23,8 +23,6 @@ export default function ProductCard({ product, index = 0, hideMobileActions = fa
   const { toggleWishlist, isWishlisted } = useWishlist();
 
   const [hoveredImgIdx, setHoveredImgIdx] = useState(0);
-  const [hoverInterval, setHoverInterval] = useState<ReturnType<typeof setInterval> | null>(null);
-  const [isTouchDevice, setIsTouchDevice] = useState(false);
   const [heartParticles, setHeartParticles] = useState<{ id: number; x: number; y: number; rot: number; scale: number }[]>([]);
   const [showToast, setShowToast] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
@@ -137,15 +135,28 @@ export default function ProductCard({ product, index = 0, hideMobileActions = fa
             </div>
           )}
 
-          {/* Badge */}
-          {product.badge && (
+          {/* Out of Stock Overlay on Image */}
+          {!product.inStock && (
+            <div className="absolute inset-0 bg-black/40 backdrop-grayscale-[25%] pointer-events-none z-10 flex items-center justify-center">
+              <span className="bg-black/90 backdrop-blur-md text-white border border-white/20 uppercase tracking-[0.2em] text-[9px] md:text-[11px] font-bold px-3 py-1.5 shadow-2xl rounded-xs">
+                Sold Out
+              </span>
+            </div>
+          )}
+
+          {/* Badges: Out of Stock takes high priority */}
+          {!product.inStock ? (
+            <span className="absolute top-2 left-2 md:top-3 md:left-3 text-[7px] md:text-[10px] tracking-[0.12em] uppercase font-bold px-1.5 py-0.5 md:px-2.5 md:py-1 bg-black/90 text-white border border-red-500/50 shadow-md z-20 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block animate-pulse" /> Out of Stock
+            </span>
+          ) : product.badge ? (
             <span className={`absolute top-2 left-2 md:top-3 md:left-3 text-[7px] md:text-[10px] tracking-[0.12em] uppercase font-semibold px-1.5 py-0.5 md:px-2.5 md:py-1 ${BADGE_STYLES[product.badge]} z-10`}>
               {product.badge}
             </span>
-          )}
+          ) : null}
 
           {/* Wishlist button + particles */}
-          <div className="absolute top-2 right-2 md:top-3 md:right-3 z-10">
+          <div className="absolute top-2 right-2 md:top-3 md:right-3 z-20">
             {/* Floating heart particles */}
             {heartParticles.map(p => (
               <span
@@ -191,27 +202,36 @@ export default function ProductCard({ product, index = 0, hideMobileActions = fa
           </div>
 
           {/* Overlay actions (Desktop Only) */}
-          <div className="product-overlay hidden md:flex gap-1.5 md:gap-2 z-10">
-            <button
-              onClick={handleQuickAdd}
-              disabled={isAdding || added}
-              className={`flex-1 flex items-center justify-center gap-1 md:gap-2 text-white text-[8px] md:text-[10px] tracking-[0.1em] uppercase font-semibold py-1.5 md:py-2.5 transition-all cursor-pointer ${added
-                  ? 'bg-[#2E7D32] hover:bg-[#1B5E20]'
-                  : isAdding
-                    ? 'bg-[#96700A] cursor-wait animate-pulse'
-                    : 'bg-[#C4922A] hover:bg-[#96700A]'
-                }`}
-            >
-              {isAdding ? (
-                <span>Adding...</span>
-              ) : added ? (
-                <span>✓ Added</span>
-              ) : (
-                <>
-                  <ShoppingBag size={10} className="md:w-3 md:h-3" /> Quick Add
-                </>
-              )}
-            </button>
+          <div className="product-overlay hidden md:flex gap-1.5 md:gap-2 z-20">
+            {product.inStock ? (
+              <button
+                onClick={handleQuickAdd}
+                disabled={isAdding || added}
+                className={`flex-1 flex items-center justify-center gap-1 md:gap-2 text-white text-[8px] md:text-[10px] tracking-[0.1em] uppercase font-semibold py-1.5 md:py-2.5 transition-all cursor-pointer ${added
+                    ? 'bg-[#2E7D32] hover:bg-[#1B5E20]'
+                    : isAdding
+                      ? 'bg-[#96700A] cursor-wait animate-pulse'
+                      : 'bg-[#C4922A] hover:bg-[#96700A]'
+                  }`}
+              >
+                {isAdding ? (
+                  <span>Adding...</span>
+                ) : added ? (
+                  <span>✓ Added</span>
+                ) : (
+                  <>
+                    <ShoppingBag size={10} className="md:w-3 md:h-3" /> Quick Add
+                  </>
+                )}
+              </button>
+            ) : (
+              <button
+                disabled
+                className="flex-1 flex items-center justify-center gap-1 md:gap-2 bg-[#1F1F1F] text-white/50 border border-white/10 text-[8px] md:text-[10px] tracking-[0.1em] uppercase font-semibold py-1.5 md:py-2.5 cursor-not-allowed select-none"
+              >
+                Out of Stock
+              </button>
+            )}
             <Link
               to={`/product/${product.id}`}
               className="w-7 md:w-10 flex items-center justify-center bg-white text-[#0A0A0A] hover:bg-[#F2F0ED] transition-colors shrink-0"
@@ -223,7 +243,14 @@ export default function ProductCard({ product, index = 0, hideMobileActions = fa
 
         {/* Info */}
         <div className="pt-2.5 md:pt-4 pb-2 px-0.5">
-          <p className="text-[8px] md:text-[10px] text-[#9E9E9E] tracking-[0.1em] uppercase mb-0.5 md:mb-1">{product.subcategory}</p>
+          <div className="flex items-center justify-between gap-1 mb-0.5 md:mb-1">
+            <p className="text-[8px] md:text-[10px] text-[#9E9E9E] tracking-[0.1em] uppercase">{product.subcategory}</p>
+            {!product.inStock && (
+              <span className="text-[8px] md:text-[9px] uppercase tracking-wider font-bold text-red-600">
+                Out of Stock
+              </span>
+            )}
+          </div>
           <h3 className="font-display text-[#0A0A0A] font-semibold text-xs md:text-base leading-snug mb-1 md:mb-2 group-hover:text-[#C4922A] transition-colors line-clamp-2">
             {product.name}
           </h3>
@@ -251,26 +278,35 @@ export default function ProductCard({ product, index = 0, hideMobileActions = fa
           {/* Mobile Actions Row (Visible only on mobile viewports) */}
           {!hideMobileActions && (
             <div className="flex md:hidden gap-1.5 mt-3 w-full">
-              <button
-                onClick={handleQuickAdd}
-                disabled={isAdding || added}
-                className={`flex-1 flex items-center justify-center gap-1 text-white text-[9px] tracking-[0.08em] uppercase font-bold py-2 transition-all cursor-pointer rounded-xs ${added
-                    ? 'bg-[#2E7D32]'
-                    : isAdding
-                      ? 'bg-[#96700A] cursor-wait animate-pulse'
-                      : 'bg-[#C4922A] hover:bg-[#96700A]'
-                  }`}
-              >
-                {isAdding ? (
-                  <span>Adding...</span>
-                ) : added ? (
-                  <span>✓ Added</span>
-                ) : (
-                  <>
-                    <ShoppingBag size={10} /> Quick Add
-                  </>
-                )}
-              </button>
+              {product.inStock ? (
+                <button
+                  onClick={handleQuickAdd}
+                  disabled={isAdding || added}
+                  className={`flex-1 flex items-center justify-center gap-1 text-white text-[9px] tracking-[0.08em] uppercase font-bold py-2 transition-all cursor-pointer rounded-xs ${added
+                      ? 'bg-[#2E7D32]'
+                      : isAdding
+                        ? 'bg-[#96700A] cursor-wait animate-pulse'
+                        : 'bg-[#C4922A] hover:bg-[#96700A]'
+                    }`}
+                >
+                  {isAdding ? (
+                    <span>Adding...</span>
+                  ) : added ? (
+                    <span>✓ Added</span>
+                  ) : (
+                    <>
+                      <ShoppingBag size={10} /> Quick Add
+                    </>
+                  )}
+                </button>
+              ) : (
+                <button
+                  disabled
+                  className="flex-1 flex items-center justify-center gap-1 bg-[#222222] text-[#888888] text-[9px] tracking-[0.08em] uppercase font-bold py-2 border border-white/10 cursor-not-allowed rounded-xs select-none"
+                >
+                  Out of Stock
+                </button>
+              )}
               <Link
                 to={`/product/${product.id}`}
                 className="w-8 flex items-center justify-center bg-white text-[#0A0A0A] border border-[#E8E4DF] hover:bg-[#F2F0ED] transition-colors shrink-0 rounded-xs"
