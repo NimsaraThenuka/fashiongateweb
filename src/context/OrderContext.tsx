@@ -277,20 +277,26 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const getCustomerOrders = useCallback(
     (uid?: string, email?: string): Order[] => {
-      const myIds = getMyOrderIds();
+      const cleanUid = uid?.trim();
       const cleanEmail = email?.trim().toLowerCase();
 
-      return orders.filter(o => {
-        // Match by authenticated UID
-        if (uid && o.userId && o.userId === uid) return true;
-        // Match by authenticated user email
-        if (cleanEmail && o.userEmail && o.userEmail.toLowerCase() === cleanEmail) return true;
-        // Match by customer email filled at checkout
-        if (cleanEmail && o.customer?.email && o.customer.email.toLowerCase() === cleanEmail) return true;
-        // Match by local device order history IDs
-        if (myIds.includes(o.id)) return true;
-        return false;
-      });
+      // If user is authenticated (has UID or Email), strictly match their account
+      if (cleanUid || cleanEmail) {
+        return orders.filter(o => {
+          // 1. Strict match by authenticated UID
+          if (cleanUid && o.userId && o.userId === cleanUid) return true;
+          // 2. Strict match by user account email
+          if (cleanEmail && o.userEmail && o.userEmail.toLowerCase() === cleanEmail) return true;
+          // 3. Match by customer email used at checkout
+          if (cleanEmail && o.customer?.email && o.customer.email.toLowerCase() === cleanEmail) return true;
+          return false;
+        });
+      }
+
+      // If NOT logged in (guest mode), only show orders placed on this device as an unauthenticated guest
+      const guestIds = getMyOrderIds();
+      if (guestIds.length === 0) return [];
+      return orders.filter(o => !o.userId && !o.userEmail && guestIds.includes(o.id));
     },
     [orders]
   );
