@@ -67,6 +67,14 @@ const COLOR_PRESETS = [
   'Mustard Yellow',
 ];
 
+const FIT_PRESETS = [
+  { label: 'True to Size', text: 'This piece runs true to size. We recommend ordering your usual size. For detailed measurements, please refer to our size guide. The model is 5\'10" and wearing a size S.' },
+  { label: 'Relaxed / Loose Fit', text: 'Designed for a relaxed, comfortable silhouette with a breezy drape. If you prefer a closer fit, consider sizing down one size.' },
+  { label: 'Tailored / Slim Fit', text: 'Tailored slim silhouette. Cut close through the body and chest. If you are between sizes, we suggest taking the next size up.' },
+  { label: 'Free Size / Universal', text: 'Free Size garment designed with an adjustable, flattering drape that comfortably fits standard sizes XS to XL.' },
+  { label: 'Oversized Streetwear', text: 'Intentionally cut for an oversized, modern aesthetic with dropped shoulders. Order your true size to achieve the intended relaxed look.' },
+];
+
 export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSave, product }) => {
   const [name, setName] = useState('');
   const [category, setCategory] = useState<'women' | 'men' | 'kids' | 'accessories' | 'new'>('women');
@@ -81,7 +89,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
   const [colors, setColors] = useState<string[]>([]);
   const [newColor, setNewColor] = useState('');
   const [description, setDescription] = useState('');
+  const [sizeFit, setSizeFit] = useState('');
   const [badge, setBadge] = useState<'new' | 'sale' | 'trending' | 'limited' | undefined>(undefined);
+  const [stockQuantity, setStockQuantity] = useState<number | ''>(12);
   const [inStock, setInStock] = useState<boolean>(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -97,8 +107,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
       setSizes(product.sizes || []);
       setColors(product.colors || []);
       setDescription(product.description || '');
+      setSizeFit(product.sizeFit || '');
       setBadge(product.badge);
-      setInStock(product.inStock ?? true);
+      const initialStock = typeof product.stockQuantity === 'number' ? product.stockQuantity : (product.inStock ? 12 : 0);
+      setStockQuantity(initialStock);
+      setInStock(initialStock > 0);
     } else {
       // Defaults for new product
       setName('');
@@ -111,7 +124,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
       setSizes(['S', 'M', 'L']);
       setColors(['Classic Black', 'Natural Sand']);
       setDescription('');
+      setSizeFit('');
       setBadge(undefined);
+      setStockQuantity(15);
       setInStock(true);
     }
     setErrors({});
@@ -204,6 +219,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
     if (!validate()) return;
 
     const allImgs = [mainImage.trim(), ...galleryImages.filter(img => img.trim() !== mainImage.trim())];
+    const finalStock = typeof stockQuantity === 'number' ? Math.max(0, stockQuantity) : 0;
 
     const payload = {
       name: name.trim(),
@@ -216,8 +232,10 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
       sizes: sizes.length > 0 ? sizes : ['One Size'],
       colors: colors.length > 0 ? colors : ['Standard'],
       description: description.trim(),
+      sizeFit: sizeFit.trim() ? sizeFit.trim() : undefined,
       badge: badge || undefined,
-      inStock,
+      stockQuantity: finalStock,
+      inStock: finalStock > 0,
     };
 
     onSave(payload);
@@ -635,46 +653,199 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
               rows={3}
               value={description}
               onChange={e => setDescription(e.target.value)}
-              placeholder="Describe material, artisanal features, tailoring and fit..."
+              placeholder="Describe material, artisanal features, tailoring and styling notes..."
               className={`w-full bg-[#181818] border ${errors.description ? 'border-red-500' : 'border-white/15'} px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-[#C4922A] transition-colors rounded-xs resize-none`}
             />
             {errors.description && <p className="text-red-400 text-xs mt-1">{errors.description}</p>}
           </div>
 
-          {/* Badge & Stock status */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2 border-t border-white/10">
-            <div>
-              <label className="block text-[11px] tracking-[0.1em] uppercase text-white/70 font-semibold mb-2">
-                Promotional Badge
+          {/* Size & Fit (Editable Accordion Section) */}
+          <div className="space-y-2 pt-1">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <label className="block text-[11px] tracking-[0.1em] uppercase text-white/70 font-semibold">
+                Size &amp; Fit Details (Optional)
               </label>
-              <select
-                value={badge || ''}
-                onChange={e => setBadge(e.target.value ? (e.target.value as any) : undefined)}
-                className="w-full bg-[#181818] border border-white/15 px-4 py-2.5 text-sm text-white outline-none focus:border-[#C4922A] rounded-xs cursor-pointer"
-              >
-                <option value="">None (Standard)</option>
-                <option value="new">New Arrival</option>
-                <option value="trending">Trending Now</option>
-                <option value="limited">Limited Edition</option>
-                <option value="sale">Special Sale</option>
-              </select>
+              <span className="text-[10px] text-white/40">
+                Customizes the "Size &amp; Fit" accordion on the product page
+              </span>
             </div>
 
-            <div className="flex items-center justify-between sm:justify-start gap-4 pt-6">
-              <label className="text-[12px] tracking-[0.1em] uppercase text-white/90 font-semibold cursor-pointer select-none">
-                Availability Status:
-              </label>
-              <button
-                type="button"
-                onClick={() => setInStock(!inStock)}
-                className={`px-4 py-2 text-xs font-bold tracking-wider uppercase rounded-xs border transition-all flex items-center gap-1.5 cursor-pointer ${
-                  inStock
-                    ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400'
-                    : 'border-red-500 bg-red-500/20 text-red-400'
-                }`}
-              >
-                {inStock ? <><Check size={13} /> In Stock</> : <><X size={13} /> Out of Stock</>}
-              </button>
+            {/* Quick Presets */}
+            <div className="flex flex-wrap items-center gap-1.5 pb-1">
+              <span className="text-[10px] uppercase tracking-wider text-[#C4922A] font-semibold flex items-center gap-1 mr-1">
+                <Sparkles size={11} /> Quick Fit:
+              </span>
+              {FIT_PRESETS.map((preset, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setSizeFit(preset.text)}
+                  className={`text-[10px] px-2.5 py-1 rounded-xs border transition-all cursor-pointer ${
+                    sizeFit === preset.text
+                      ? 'bg-[#C4922A] text-black font-bold border-[#C4922A]'
+                      : 'bg-white/5 border-white/10 text-white/75 hover:border-[#C4922A]/50 hover:text-white'
+                  }`}
+                  title={preset.text}
+                >
+                  {preset.label}
+                </button>
+              ))}
+              {sizeFit && (
+                <button
+                  type="button"
+                  onClick={() => setSizeFit('')}
+                  className="text-[10px] px-2 py-1 rounded-xs bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 cursor-pointer ml-auto"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+
+            <textarea
+              rows={3}
+              value={sizeFit}
+              onChange={e => setSizeFit(e.target.value)}
+              placeholder="e.g. This piece runs true to size. We recommend ordering your usual size. For detailed measurements, please refer to our size guide. The model is 5'10&quot; and wearing a size S."
+              className="w-full bg-[#181818] border border-white/15 px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-[#C4922A] transition-colors rounded-xs resize-none"
+            />
+            <p className="text-[11px] text-white/40">
+              💡 If left blank, the standard default sizing description will be shown to customers.
+            </p>
+          </div>
+
+          {/* Badge & Real-Time Stock Management */}
+          <div className="space-y-4 pt-2 border-t border-white/10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
+              <div>
+                <label className="block text-[11px] tracking-[0.1em] uppercase text-white/70 font-semibold mb-2 h-5 flex items-center">
+                  Promotional Badge
+                </label>
+                <select
+                  value={badge || ''}
+                  onChange={e => setBadge(e.target.value ? (e.target.value as any) : undefined)}
+                  className="w-full h-10.5 bg-[#181818] border border-white/15 px-3.5 text-sm text-white outline-none focus:border-[#C4922A] rounded-xs cursor-pointer"
+                >
+                  <option value="">None (Standard)</option>
+                  <option value="new">New Arrival</option>
+                  <option value="trending">Trending Now</option>
+                  <option value="limited">Limited Edition</option>
+                  <option value="sale">Special Sale</option>
+                </select>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-2 h-5">
+                  <label className="block text-[11px] tracking-[0.1em] uppercase text-white/70 font-semibold whitespace-nowrap">
+                    Stock Quantity
+                  </label>
+                  <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-xs border whitespace-nowrap shrink-0 flex items-center gap-1 leading-none ${
+                    (typeof stockQuantity === 'number' && stockQuantity > 0)
+                      ? stockQuantity <= 5
+                        ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                        : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+                      : 'bg-red-500/20 text-red-400 border-red-500/40'
+                  }`}>
+                    {(typeof stockQuantity === 'number' && stockQuantity > 0)
+                      ? stockQuantity <= 5 ? `⚡ Low Stock (${stockQuantity})` : `✓ In Stock (${stockQuantity})`
+                      : '🔴 Out of Stock'}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={stockQuantity}
+                    onChange={e => {
+                      const val = e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value, 10) || 0);
+                      setStockQuantity(val);
+                      setInStock(typeof val === 'number' ? val > 0 : false);
+                    }}
+                    placeholder="e.g. 15"
+                    className="flex-1 h-10.5 bg-[#181818] border border-white/15 px-3.5 text-sm text-white font-mono font-bold outline-none focus:border-[#C4922A] rounded-xs"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = !inStock;
+                      setInStock(next);
+                      setStockQuantity(next ? 10 : 0);
+                    }}
+                    className={`h-10.5 px-3.5 flex items-center justify-center text-xs font-bold uppercase tracking-wider rounded-xs border transition-all cursor-pointer shrink-0 whitespace-nowrap ${
+                      inStock
+                        ? 'border-emerald-500/40 bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25'
+                        : 'border-red-500/40 bg-red-500/15 text-red-400 hover:bg-red-500/25'
+                    }`}
+                  >
+                    {inStock ? 'Mark OOS' : 'Set In-Stock'}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Stock Presets Bar */}
+            <div className="p-2.5 bg-black/40 border border-white/10 rounded-xs space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase tracking-wider text-white/60 font-semibold">
+                  ⚡ Quick Set Available Stock:
+                </span>
+                <span className="text-[10px] text-white/40 hidden sm:inline">
+                  Click to assign units instantly
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {[
+                  { label: '0 (Sold Out)', val: 0 },
+                  { label: '3 (Low)', val: 3 },
+                  { label: '5 (Urgent)', val: 5 },
+                  { label: '10 Units', val: 10 },
+                  { label: '15 Units', val: 15 },
+                  { label: '25 Units', val: 25 },
+                  { label: '50 Units', val: 50 },
+                ].map(preset => (
+                  <button
+                    key={preset.val}
+                    type="button"
+                    onClick={() => {
+                      setStockQuantity(preset.val);
+                      setInStock(preset.val > 0);
+                    }}
+                    className={`text-[10px] px-2.5 py-1 rounded-xs border transition-all cursor-pointer font-medium ${
+                      stockQuantity === preset.val
+                        ? 'bg-[#C4922A] text-black font-bold border-[#C4922A]'
+                        : 'bg-white/5 border-white/10 text-white/75 hover:border-[#C4922A]/60 hover:text-white'
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+
+                <div className="flex items-center gap-1.5 ml-auto">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const curr = typeof stockQuantity === 'number' ? stockQuantity : 0;
+                      setStockQuantity(curr + 5);
+                      setInStock(true);
+                    }}
+                    className="text-[10px] px-2.5 py-1 rounded-xs bg-[#C4922A]/20 border border-[#C4922A]/50 text-[#E8B84B] hover:bg-[#C4922A]/35 cursor-pointer font-bold"
+                  >
+                    +5 More
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const curr = typeof stockQuantity === 'number' ? stockQuantity : 0;
+                      setStockQuantity(curr + 10);
+                      setInStock(true);
+                    }}
+                    className="text-[10px] px-2.5 py-1 rounded-xs bg-[#C4922A]/20 border border-[#C4922A]/50 text-[#E8B84B] hover:bg-[#C4922A]/35 cursor-pointer font-bold"
+                  >
+                    +10 More
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 

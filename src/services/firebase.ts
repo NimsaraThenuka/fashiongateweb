@@ -12,6 +12,7 @@ import {
   Unsubscribe,
   Firestore
 } from 'firebase/firestore';
+import { getAuth, Auth } from 'firebase/auth';
 import type { Product } from '../data/products';
 
 export interface FirebaseConfig {
@@ -68,8 +69,24 @@ export function clearStoredFirebaseConfig(): void {
   }
 }
 
-// Initialize Firebase App & Firestore singleton
+// Initialize Firebase App & Firestore & Auth singletons
 let dbInstance: Firestore | null = null;
+let authInstance: Auth | null = null;
+
+export function getFirebaseAuth(): Auth | null {
+  try {
+    if (authInstance) return authInstance;
+    const config = getStoredFirebaseConfig();
+    if (!config.apiKey || !config.projectId) return null;
+
+    const app = getApps().length === 0 ? initializeApp(config) : getApp();
+    authInstance = getAuth(app);
+    return authInstance;
+  } catch (err) {
+    console.warn('Firebase Auth initialization warning:', err);
+    return null;
+  }
+}
 
 export function getFirestoreDB(): Firestore | null {
   try {
@@ -81,13 +98,14 @@ export function getFirestoreDB(): Firestore | null {
     dbInstance = getFirestore(app);
     return dbInstance;
   } catch (err) {
-    console.warn('Firebase initialization warning:', err);
+    console.warn('Firebase Firestore initialization warning:', err);
     return null;
   }
 }
 
 export function resetFirebaseInstance(): void {
   dbInstance = null;
+  authInstance = null;
 }
 
 // LocalStorage helpers

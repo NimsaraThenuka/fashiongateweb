@@ -23,9 +23,9 @@ export default function ShippingReturns() {
             </div>
             <h3 className="font-display text-xl font-bold text-[#0A0A0A] mb-4">Domestic Shipping</h3>
             <ul className="space-y-3 text-sm text-[#4A4A4A]">
-              <li><strong>Colombo & Suburbs:</strong> Same-day or next-day delivery (Rs. 350, or Free over Rs. 25,000).</li>
-              <li><strong>Outstation Districts:</strong> 2 to 4 business days via registered courier (Rs. 500, or Free over Rs. 25,000).</li>
-              <li><strong>Tracking:</strong> All orders receive a tracking SMS link as soon as they leave our Kotte boutique.</li>
+              <li><strong>Islandwide Delivery:</strong> Flat standard shipping fee of Rs. 350 across all districts in Sri Lanka.</li>
+              <li><strong>Delivery Timeline:</strong> 1 to 3 business days via Prompt Express registered courier.</li>
+              <li><strong>Tracking:</strong> All orders receive a real-time tracking reference key upon dispatch.</li>
             </ul>
           </div>
 

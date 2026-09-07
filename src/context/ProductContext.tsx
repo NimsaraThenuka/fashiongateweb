@@ -16,6 +16,8 @@ interface ProductContextType {
   updateProduct: (id: number, updated: Partial<Product>) => void;
   deleteProduct: (id: number) => void;
   toggleStock: (id: number) => void;
+  updateStockQuantity: (id: number, newStock: number) => void;
+  reduceStock: (items: { id: number; quantity: number }[]) => void;
   resetToDefaults: () => void;
   getProductById: (id: number) => Product | undefined;
   syncAllToCloud: () => Promise<boolean>;
@@ -25,13 +27,27 @@ interface ProductContextType {
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
+// Helper to ensure each product object has valid numeric stockQuantity and accurate inStock boolean
+const normalizeProduct = (p: Product): Product => {
+  const stock = typeof p.stockQuantity === 'number' ? Math.max(0, p.stockQuantity) : (p.inStock ? 12 : 0);
+  return {
+    ...p,
+    stockQuantity: stock,
+    inStock: stock > 0,
+  };
+};
+
+const normalizeProductList = (list: Product[]): Product[] => {
+  return list.map(normalizeProduct);
+};
+
 export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [products, setProducts] = useState<Product[]>(() => {
     const local = getLocalStoredProducts();
     if (local && Array.isArray(local) && local.length > 0) {
-      return local;
+      return normalizeProductList(local);
     }
-    return initialProducts;
+    return normalizeProductList(initialProducts);
   });
 
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
@@ -46,12 +62,14 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       try {
         const cloudProducts = await fetchProductsFromFirestore();
         if (isMounted && cloudProducts && cloudProducts.length > 0) {
-          setProducts(cloudProducts);
-          saveLocalStoredProducts(cloudProducts);
+          const normalized = normalizeProductList(cloudProducts);
+          setProducts(normalized);
+          saveLocalStoredProducts(normalized);
           setCloudSyncStatus('connected');
         } else if (isMounted && (!cloudProducts || cloudProducts.length === 0)) {
           const current = getLocalStoredProducts() || initialProducts;
-          await batchUploadAllProductsToFirestore(current);
+          const normalized = normalizeProductList(current);
+          await batchUploadAllProductsToFirestore(normalized);
           setCloudSyncStatus('connected');
         }
       } catch (err) {
@@ -65,8 +83,9 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const unsubscribeFirestore = subscribeToFirestoreProducts(
       cloudProducts => {
         if (isMounted && cloudProducts && cloudProducts.length > 0) {
-          setProducts(cloudProducts);
-          saveLocalStoredProducts(cloudProducts);
+          const normalized = normalizeProductList(cloudProducts);
+          setProducts(normalized);
+          saveLocalStoredProducts(normalized);
           setCloudSyncStatus('connected');
         }
       },
@@ -81,7 +100,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
         try {
           const parsed = JSON.parse(e.newValue);
           if (Array.isArray(parsed) && parsed.length > 0 && isMounted) {
-            setProducts(parsed);
+            setProducts(normalizeProductList(parsed));
           }
         } catch {
           // ignore
@@ -94,7 +113,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const handleCustomSync = (e: Event) => {
       const customEvent = e as CustomEvent<Product[]>;
       if (customEvent.detail && Array.isArray(customEvent.detail) && isMounted) {
-        setProducts(customEvent.detail);
+        setProducts(normalizeProductList(customEvent.detail));
       }
     };
     window.addEventListener('fashiongate_products_updated', handleCustomSync);
@@ -120,12 +139,14 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const addProduct = (data: Omit<Product, 'id' | 'rating' | 'reviews'>): Product => {
     const nextId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
+    const stockQty = typeof data.stockQuantity === 'number' ? Math.max(0, data.stockQuantity) : (data.inStock ? 10 : 0);
     const newProduct: Product = {
       ...data,
       id: nextId,
       rating: 5.0,
       reviews: 1,
-      inStock: data.inStock ?? true,
+      stockQuantity: stockQty,
+      inStock: stockQty > 0,
       images: data.images && data.images.length > 0 ? data.images : [data.image],
     };
 
@@ -147,6 +168,18 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const merged = { ...p, ...updated };
         if (updated.image && (!updated.images || updated.images.length === 0)) {
           merged.images = [updated.image];
+        }
+
+        if (typeof updated.stockQuantity === 'number') {
+          merged.stockQuantity = Math.max(0, Math.floor(updated.stockQuantity));
+          merged.inStock = merged.stockQuantity > 0;
+        } else if (typeof updated.inStock === 'boolean' && updated.stockQuantity === undefined) {
+          merged.inStock = updated.inStock;
+          if (!updated.inStock) {
+            merged.stockQuantity = 0;
+          } else if (p.stockQuantity === 0) {
+            merged.stockQuantity = 10;
+          }
         }
 
         // Push to Firestore in background
@@ -177,7 +210,13 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const toggleStock = (id: number) => {
     const nextList = products.map(p => {
       if (p.id === id) {
-        const updated = { ...p, inStock: !p.inStock };
+        const willBeInStock = !p.inStock;
+        const nextStock = willBeInStock ? (p.stockQuantity && p.stockQuantity > 0 ? p.stockQuantity : 10) : 0;
+        const updated: Product = {
+          ...p,
+          inStock: willBeInStock,
+          stockQuantity: nextStock,
+        };
         saveProductToFirestore(updated).catch(err =>
           console.warn('Firestore async stock toggle failed:', err)
         );
@@ -190,10 +229,58 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
     broadcastProducts(nextList);
   };
 
+  const updateStockQuantity = (id: number, newStock: number) => {
+    const sanitized = Math.max(0, Math.floor(newStock));
+    const nextList = products.map(p => {
+      if (p.id === id) {
+        const updated: Product = {
+          ...p,
+          stockQuantity: sanitized,
+          inStock: sanitized > 0,
+        };
+        saveProductToFirestore(updated).catch(err =>
+          console.warn('Firestore async stock update failed:', err)
+        );
+        return updated;
+      }
+      return p;
+    });
+
+    setProducts(nextList);
+    broadcastProducts(nextList);
+  };
+
+  // Real-time stock reduction after purchase
+  const reduceStock = (itemsToReduce: { id: number; quantity: number }[]) => {
+    if (!itemsToReduce || itemsToReduce.length === 0) return;
+
+    const nextList = products.map(p => {
+      const target = itemsToReduce.find(i => i.id === p.id);
+      if (target) {
+        const currentStock = typeof p.stockQuantity === 'number' ? p.stockQuantity : (p.inStock ? 12 : 0);
+        const newStock = Math.max(0, currentStock - target.quantity);
+        const updated: Product = {
+          ...p,
+          stockQuantity: newStock,
+          inStock: newStock > 0,
+        };
+        saveProductToFirestore(updated).catch(err =>
+          console.warn('Firestore async stock reduction failed:', err)
+        );
+        return updated;
+      }
+      return p;
+    });
+
+    setProducts(nextList);
+    broadcastProducts(nextList);
+  };
+
   const resetToDefaults = () => {
-    setProducts(initialProducts);
-    broadcastProducts(initialProducts);
-    batchUploadAllProductsToFirestore(initialProducts).catch(err =>
+    const normalized = normalizeProductList(initialProducts);
+    setProducts(normalized);
+    broadcastProducts(normalized);
+    batchUploadAllProductsToFirestore(normalized).catch(err =>
       console.warn('Firestore batch reset failed:', err)
     );
   };
@@ -230,6 +317,8 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
         updateProduct,
         deleteProduct,
         toggleStock,
+        updateStockQuantity,
+        reduceStock,
         resetToDefaults,
         getProductById,
         syncAllToCloud,

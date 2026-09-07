@@ -1,13 +1,12 @@
 import { Link } from 'react-router-dom';
-import { Minus, Plus, X, ShoppingBag, ArrowRight, ArrowLeft, Lock } from 'lucide-react';
+import { Minus, Plus, X, ShoppingBag, ArrowRight, ArrowLeft, Lock, Truck, Building2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
 export default function Cart() {
   const { items, removeFromCart, updateQuantity, totalItems, totalPrice } = useCart();
 
-  const shipping = totalPrice >= 25000 ? 0 : 2500;
-  const tax = totalPrice * 0.08;
-  const grandTotal = totalPrice + shipping + tax;
+  const shipping = 350;
+  const grandTotal = totalPrice + shipping;
 
   if (items.length === 0) {
     return (
@@ -152,25 +151,16 @@ export default function Cart() {
                 <span className="font-medium text-[#0A0A0A]">Rs. {totalPrice.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-[#4A4A4A]">Shipping</span>
-                <span className={shipping === 0 ? 'text-green-600 font-medium' : 'font-medium text-[#0A0A0A]'}>
-                  {shipping === 0 ? 'Free' : `Rs. ${shipping.toLocaleString()}`}
+                <span className="text-[#4A4A4A]">Standard Shipping</span>
+                <span className="font-medium text-[#0A0A0A]">
+                  Rs. {shipping.toLocaleString()}
                 </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-[#4A4A4A]">Tax (8%)</span>
-                <span className="font-medium text-[#0A0A0A]">Rs. {tax.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
               </div>
             </div>
             <div className="flex justify-between items-center py-5 border-b border-[#E8E4DF]">
               <span className="font-semibold text-[#0A0A0A]">Total</span>
-              <span className="font-display text-lg md:text-xl font-bold text-[#0A0A0A]">Rs. {grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+              <span className="font-display text-lg md:text-xl font-bold text-[#0A0A0A]">Rs. {grandTotal.toLocaleString()}</span>
             </div>
-            {shipping > 0 && (
-              <p className="text-xs text-[#9E9E9E] py-3 text-center">
-                Add <span className="text-[#C4922A] font-medium">Rs. {(25000 - totalPrice).toLocaleString()}</span> more for free shipping
-              </p>
-            )}
             <div className="mt-4 flex flex-col gap-3">
               <Link to="/checkout" className="btn-gold w-full flex items-center justify-center gap-2 cursor-pointer text-center">
                 <span>Proceed to Checkout</span> <ArrowRight size={14} />
@@ -184,10 +174,13 @@ export default function Cart() {
               <span className="text-[10px] tracking-[0.06em]">Secure, encrypted checkout</span>
             </div>
             {/* Payment methods */}
-            <div className="flex items-center justify-center gap-3 mt-4 opacity-40">
-              {['VISA', 'MC', 'AMEX', 'PayPal'].map(m => (
-                <span key={m} className="text-[9px] tracking-widest border border-current px-1.5 py-0.5 font-bold">{m}</span>
-              ))}
+            <div className="flex items-center justify-center gap-2 mt-3 text-[#5A5A5A]">
+              <span className="text-[9px] tracking-wider uppercase border border-[#D5D0C9] bg-white px-2 py-0.5 font-bold flex items-center gap-1 rounded-xs">
+                <Truck size={11} className="text-[#C4922A]" /> COD
+              </span>
+              <span className="text-[9px] tracking-wider uppercase border border-[#D5D0C9] bg-white px-2 py-0.5 font-bold flex items-center gap-1 rounded-xs">
+                <Building2 size={11} className="text-[#C4922A]" /> Bank Transfer
+              </span>
             </div>
           </div>
         </div>

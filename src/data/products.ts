@@ -8,11 +8,13 @@ export interface Product {
   image: string;
   images: string[];
   description: string;
+  sizeFit?: string;
   sizes: string[];
   colors: string[];
   rating: number;
   reviews: number;
   badge?: 'new' | 'sale' | 'trending' | 'limited';
+  stockQuantity?: number;
   inStock: boolean;
 }
 
@@ -38,6 +40,7 @@ export const products: Product[] = [
     rating: 4.9,
     reviews: 127,
     badge: 'sale',
+    stockQuantity: 8,
     inStock: true,
   },
   {
@@ -58,6 +61,7 @@ export const products: Product[] = [
     rating: 4.8,
     reviews: 89,
     badge: 'trending',
+    stockQuantity: 12,
     inStock: true,
   },
   {
@@ -78,6 +82,7 @@ export const products: Product[] = [
     rating: 5.0,
     reviews: 43,
     badge: 'limited',
+    stockQuantity: 3,
     inStock: true,
   },
   {
@@ -98,6 +103,7 @@ export const products: Product[] = [
     rating: 4.9,
     reviews: 215,
     badge: 'new',
+    stockQuantity: 20,
     inStock: true,
   },
   {
@@ -118,6 +124,7 @@ export const products: Product[] = [
     rating: 4.7,
     reviews: 68,
     badge: 'trending',
+    stockQuantity: 15,
     inStock: true,
   },
   {
@@ -138,6 +145,7 @@ export const products: Product[] = [
     rating: 5.0,
     reviews: 156,
     badge: 'limited',
+    stockQuantity: 7,
     inStock: true,
   },
   {
@@ -159,6 +167,7 @@ export const products: Product[] = [
     rating: 4.8,
     reviews: 302,
     badge: 'sale',
+    stockQuantity: 10,
     inStock: true,
   },
   {
@@ -179,6 +188,7 @@ export const products: Product[] = [
     rating: 4.6,
     reviews: 87,
     badge: 'new',
+    stockQuantity: 18,
     inStock: true,
   },
   {
@@ -199,6 +209,7 @@ export const products: Product[] = [
     rating: 4.9,
     reviews: 74,
     badge: 'new',
+    stockQuantity: 9,
     inStock: true,
   },
   {
@@ -219,6 +230,7 @@ export const products: Product[] = [
     rating: 4.7,
     reviews: 53,
     badge: 'new',
+    stockQuantity: 4,
     inStock: true,
   },
   {
@@ -240,6 +252,7 @@ export const products: Product[] = [
     rating: 5.0,
     reviews: 29,
     badge: 'limited',
+    stockQuantity: 6,
     inStock: true,
   },
   {
@@ -260,6 +273,7 @@ export const products: Product[] = [
     rating: 4.8,
     reviews: 112,
     badge: 'trending',
+    stockQuantity: 14,
     inStock: true,
   },
   {
@@ -281,6 +295,7 @@ export const products: Product[] = [
     rating: 4.9,
     reviews: 48,
     badge: 'new',
+    stockQuantity: 11,
     inStock: true,
   },
   {
@@ -301,6 +316,7 @@ export const products: Product[] = [
     rating: 4.8,
     reviews: 63,
     badge: 'trending',
+    stockQuantity: 16,
     inStock: true,
   },
   {
@@ -322,6 +338,7 @@ export const products: Product[] = [
     rating: 5.0,
     reviews: 35,
     badge: 'limited',
+    stockQuantity: 5,
     inStock: true,
   },
   {
@@ -342,6 +359,7 @@ export const products: Product[] = [
     rating: 4.9,
     reviews: 42,
     badge: 'new',
+    stockQuantity: 8,
     inStock: true,
   },
   {
@@ -362,6 +380,7 @@ export const products: Product[] = [
     rating: 4.7,
     reviews: 29,
     badge: 'trending',
+    stockQuantity: 12,
     inStock: true,
   },
   {
@@ -382,6 +401,7 @@ export const products: Product[] = [
     rating: 4.8,
     reviews: 51,
     badge: 'new',
+    stockQuantity: 25,
     inStock: true,
   },
 ];

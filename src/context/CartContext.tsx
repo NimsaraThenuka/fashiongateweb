@@ -23,15 +23,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
 
   const addToCart = (product: Product, size: string, color: string) => {
-    if (product.inStock === false) {
+    const maxStock = typeof product.stockQuantity === 'number' ? product.stockQuantity : (product.inStock ? 10 : 0);
+    if (!product.inStock || maxStock <= 0) {
       return;
     }
     setItems(prev => {
       const existing = prev.find(i => i.id === product.id && i.selectedSize === size && i.selectedColor === color);
       if (existing) {
+        if (existing.quantity >= maxStock) {
+          return prev; // cannot exceed available stock
+        }
         return prev.map(i =>
           i.id === product.id && i.selectedSize === size && i.selectedColor === color
-            ? { ...i, quantity: i.quantity + 1 }
+            ? { ...i, quantity: Math.min(maxStock, i.quantity + 1) }
             : i
         );
       }
@@ -49,11 +53,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return;
     }
     setItems(prev =>
-      prev.map(i =>
-        i.id === id && i.selectedSize === size && i.selectedColor === color
-          ? { ...i, quantity }
-          : i
-      )
+      prev.map(i => {
+        if (i.id === id && i.selectedSize === size && i.selectedColor === color) {
+          const maxStock = typeof i.stockQuantity === 'number' ? i.stockQuantity : (i.inStock ? 10 : 0);
+          const cappedQty = maxStock > 0 ? Math.min(quantity, maxStock) : quantity;
+          return { ...i, quantity: cappedQty };
+        }
+        return i;
+      })
     );
   };
 

@@ -42,9 +42,9 @@ export const INITIAL_ORDERS: Order[] = [
       },
     ],
     subtotal: 18500,
-    shipping: 0,
-    tax: 1480,
-    total: 19980,
+    shipping: 350,
+    tax: 0,
+    total: 18850,
     paymentMethod: 'cod',
     paymentStatus: 'pending',
     status: 'shipped',
@@ -80,6 +80,77 @@ export const INITIAL_ORDERS: Order[] = [
         title: 'Delivered',
         desc: 'Package delivered to recipient.',
         time: 'Pending',
+        done: false,
+      },
+    ],
+  },
+  {
+    id: 'FG-2026-3391',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
+    customer: {
+      fullName: 'Nadeesha Senanayake',
+      email: 'nadeesha.s@gmail.com',
+      phone: '+94 71 987 6543',
+      address: 'No. 58/2, Nawala Road',
+      city: 'Nugegoda',
+      postalCode: '10250',
+      province: 'Western Province',
+      deliveryNotes: 'Deliver during afternoon hours.',
+    },
+    items: [
+      {
+        id: 2,
+        name: 'Royal Heritage Lehenga Set',
+        price: 24500,
+        quantity: 1,
+        selectedSize: 'M',
+        selectedColor: 'Deep Crimson',
+        image: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=600&h=800&fit=crop&auto=format',
+        subcategory: 'lehengas',
+      },
+    ],
+    subtotal: 24500,
+    shipping: 350,
+    tax: 0,
+    total: 24850,
+    paymentMethod: 'bank_transfer',
+    paymentStatus: 'pending',
+    status: 'processing',
+    bankReceipt: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&auto=format&fit=crop',
+    bankReceiptName: 'Commercial_Bank_Transfer_Slip_FG3391.jpg',
+    notes: 'Bank Transfer slip attached (Commercial Bank)',
+    trackingNumber: 'FG-TRK-9942',
+    courierPartner: 'Prompt Express (Islandwide)',
+    estimatedDelivery: 'Within 2 - 3 Business Days',
+    trackingTimeline: [
+      {
+        title: 'Order Placed',
+        desc: 'Bank transfer order received with verified deposit slip attached.',
+        time: 'Sep 06, 03:45 PM',
+        done: true,
+      },
+      {
+        title: 'Confirmed & Quality Inspected',
+        desc: 'Awaiting boutique finance clearance and packaging.',
+        time: 'Pending confirmation',
+        done: false,
+      },
+      {
+        title: 'Dispatched with Courier Partner',
+        desc: 'Handed over to Prompt Express courier for islandwide delivery.',
+        time: 'Pending dispatch',
+        done: false,
+      },
+      {
+        title: 'Out for Delivery',
+        desc: 'Courier rider is in transit to destination address.',
+        time: 'Pending arrival',
+        done: false,
+      },
+      {
+        title: 'Delivered',
+        desc: 'Package delivered and signed for by customer.',
+        time: 'Pending completion',
         done: false,
       },
     ],
@@ -193,7 +264,8 @@ export async function saveOrderToFirestore(order: Order): Promise<boolean> {
 
   try {
     const docRef = doc(db, 'orders', order.id);
-    await setDoc(docRef, { ...order }, { merge: true });
+    const cleanedOrder = JSON.parse(JSON.stringify(order));
+    await setDoc(docRef, cleanedOrder, { merge: true });
     return true;
   } catch (err) {
     console.error(`Failed to save order ${order.id} to Firestore:`, err);

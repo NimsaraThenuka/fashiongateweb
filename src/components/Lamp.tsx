@@ -34,11 +34,11 @@ export const LampContainer = ({
       </div>
 
       {/* Golden Emitter and Light Beam Projection */}
-      <div className="relative flex flex-col items-center w-full z-10">
+      <div className="relative flex flex-col items-center w-full max-w-full overflow-hidden z-10">
         {/* Horizontal gold emitter line */}
         <motion.div
           initial={{ width: '0rem' }}
-          whileInView={{ width: '22rem' }}
+          whileInView={{ width: 'min(22rem, 85vw)' }}
           viewport={{ once: true }}
           transition={{
             duration: 1.1,
@@ -57,7 +57,7 @@ export const LampContainer = ({
             delay: 0.1,
             ease: 'easeOut',
           }}
-          className="w-[20rem] bg-[radial-gradient(ellipse_at_top,rgba(196,146,42,0.4),transparent_70%)] blur-[2px] pointer-events-none"
+          className="w-[min(20rem,80vw)] bg-[radial-gradient(ellipse_at_top,rgba(196,146,42,0.4),transparent_70%)] blur-[2px] pointer-events-none"
         />
       </div>
 

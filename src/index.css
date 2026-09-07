@@ -72,6 +72,23 @@ body {
   background: #96700A;
 }
 
+/* Micro scrollbar for mobile tabs */
+.tabs-scrollbar-mini::-webkit-scrollbar {
+  height: 2.5px;
+}
+.tabs-scrollbar-mini::-webkit-scrollbar-track {
+  background: #E8E4DF;
+  border-radius: 9999px;
+}
+.tabs-scrollbar-mini::-webkit-scrollbar-thumb {
+  background: #C4922A;
+  border-radius: 9999px;
+}
+.tabs-scrollbar-mini {
+  scrollbar-width: thin;
+  scrollbar-color: #C4922A #E8E4DF;
+}
+
 /* Utility classes */
 .font-display {
   font-family: 'Playfair Display', Georgia, serif;
@@ -151,11 +168,15 @@ a, button {
 .animate-fade-up { animation: fadeInUp 0.7s ease forwards; }
 .animate-fade-left { animation: fadeInLeft 0.7s ease forwards; }
 .animate-fade-right { animation: fadeInRight 0.7s ease forwards; }
-.animate-scale-in { animation: scaleIn 0.5s ease forwards; }
-.animate-marquee { animation: marquee 25s linear infinite; }
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 28s linear infinite;
+  will-change: transform;
+}
 @media (max-width: 768px) {
   .animate-marquee {
-    animation: marquee 10s linear infinite;
+    animation: marquee 14s linear infinite;
   }
 }
 .animate-product-marquee {
@@ -191,7 +212,7 @@ a, button {
 .btn-gold {
   background: linear-gradient(135deg, #C4922A 0%, #E8B84B 50%, #C4922A 100%);
   background-size: 200% 100%;
-  color: #fff;
+  color: #FFFFFF !important;
   font-family: 'Inter', sans-serif;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -201,30 +222,26 @@ a, button {
   border: none;
   cursor: pointer;
   position: relative;
-  overflow: hidden;
   transition: background-position 0.4s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
 }
-.btn-gold::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
-  transform: translateX(-100%);
-  transition: transform 0.4s ease;
+.btn-gold * {
+  color: #FFFFFF !important;
 }
 .btn-gold:hover {
   background-position: right center;
   transform: translateY(-1px);
   box-shadow: 0 8px 24px rgba(196, 146, 42, 0.4);
-}
-.btn-gold:hover::after {
-  transform: translateX(100%);
+  color: #FFFFFF !important;
 }
 
 /* Outline gold button */
 .btn-outline-gold {
-  background: transparent;
-  color: #C4922A;
+  background-color: transparent;
+  color: #C4922A !important;
   font-family: 'Inter', sans-serif;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -234,27 +251,24 @@ a, button {
   border: 1.5px solid #C4922A;
   cursor: pointer;
   position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
 }
-.btn-outline-gold::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: #C4922A;
-  transform: translateX(-100%);
-  transition: transform 0.3s ease;
-  z-index: 0;
+.btn-outline-gold * {
+  color: inherit !important;
+  transition: color 0.25s ease;
 }
 .btn-outline-gold:hover {
-  color: #fff;
+  background-color: #C4922A;
+  color: #FFFFFF !important;
+  border-color: #C4922A;
+  box-shadow: 0 4px 16px rgba(196, 146, 42, 0.35);
 }
-.btn-outline-gold:hover::before {
-  transform: translateX(0);
-}
-.btn-outline-gold span {
-  position: relative;
-  z-index: 1;
+.btn-outline-gold:hover * {
+  color: #FFFFFF !important;
 }
 
 /* Product card hover */
@@ -501,4 +515,94 @@ a, button {
 }
 .animate-bounce-pulse {
   animation: bounce-pulse 0.7s cubic-bezier(0.25, 1, 0.5, 1) both;
+}
+
+/* ==========================================================================
+   PRINT STYLES: CLEAN, LUXURY 1-PAGE INVOICE RECEIPT
+   ========================================================================== */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm 12mm 8mm 12mm;
+  }
+
+  *, *::before, *::after {
+    text-shadow: none !important;
+    box-shadow: none !important;
+  }
+
+  html, body, #root {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Reset all dark container backgrounds and min-heights from outer elements */
+  .min-h-screen,
+  .bg-\[\#0A0A0A\],
+  .bg-\[\#121212\],
+  .bg-\[\#111111\],
+  .bg-\[\#141414\],
+  .bg-\[\#161616\],
+  .bg-\[\#181818\] {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    min-height: 0 !important;
+    height: auto !important;
+    color: #000000 !important;
+  }
+
+  /* Hide all website navigation, headers, footers, scrollbars, and non-printable UI */
+  nav,
+  footer,
+  header,
+  aside,
+  .no-print,
+  .screen-only,
+  button,
+  .fixed,
+  .animate-pulse,
+  .animate-scale-in,
+  .tabs-scrollbar-mini {
+    display: none !important;
+  }
+
+  /* Show only the dedicated printable invoice */
+  .print-only {
+    display: block !important;
+    visibility: visible !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+  }
+}
+
+@media screen {
+  .print-only {
+    display: none !important;
+  }
 }

@@ -19,7 +19,12 @@ interface PlaceOrderPayload {
   tax: number;
   total: number;
   paymentMethod: PaymentMethod;
+  bankReceipt?: string;
+  bankReceiptName?: string;
   notes?: string;
+  userId?: string;
+  userEmail?: string;
+  userPhotoURL?: string;
 }
 
 interface OrderContextType {
@@ -28,7 +33,8 @@ interface OrderContextType {
   updateOrderStatus: (orderId: string, status: OrderStatus, customNote?: string) => Promise<boolean>;
   deleteOrder: (orderId: string) => Promise<boolean>;
   getOrderById: (orderId: string) => Order | undefined;
-  getMyOrders: () => Order[];
+  getMyOrders: (uid?: string, email?: string) => Order[];
+  getCustomerOrders: (uid?: string, email?: string) => Order[];
   trackOrder: (orderId: string, emailOrPhone?: string) => Order | undefined;
 }
 
@@ -145,6 +151,9 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const newOrder: Order = {
       id: uniqueId,
       createdAt: nowIso,
+      userId: payload.userId,
+      userEmail: payload.userEmail,
+      userPhotoURL: payload.userPhotoURL,
       customer: payload.customer,
       items: payload.items,
       subtotal: payload.subtotal,
@@ -159,6 +168,8 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       estimatedDelivery: 'Within 2 - 3 Business Days',
       trackingTimeline: createInitialTimeline(uniqueId),
       notes: payload.notes,
+      bankReceipt: payload.bankReceipt,
+      bankReceiptName: payload.bankReceiptName,
     };
 
     const nextList = [newOrder, ...orders];
@@ -247,16 +258,49 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const getOrderById = useCallback(
     (orderId: string): Order | undefined => {
+      if (!orderId) return undefined;
       const cleanId = orderId.trim().toUpperCase();
-      return orders.find(o => o.id.toUpperCase() === cleanId || o.trackingNumber.toUpperCase() === cleanId);
+      // 1. Search in-memory state
+      const memoryMatch = orders.find(
+        o => o?.id?.toUpperCase() === cleanId || (o?.trackingNumber && o.trackingNumber.toUpperCase() === cleanId)
+      );
+      if (memoryMatch) return memoryMatch;
+
+      // 2. Immediate localStorage fallback so newly placed orders or direct links are always found
+      const stored = getLocalStoredOrders();
+      return stored.find(
+        o => o?.id?.toUpperCase() === cleanId || (o?.trackingNumber && o.trackingNumber.toUpperCase() === cleanId)
+      );
     },
     [orders]
   );
 
-  const getMyOrders = useCallback((): Order[] => {
-    const myIds = getMyOrderIds();
-    return orders.filter(o => myIds.includes(o.id));
-  }, [orders]);
+  const getCustomerOrders = useCallback(
+    (uid?: string, email?: string): Order[] => {
+      const myIds = getMyOrderIds();
+      const cleanEmail = email?.trim().toLowerCase();
+
+      return orders.filter(o => {
+        // Match by authenticated UID
+        if (uid && o.userId && o.userId === uid) return true;
+        // Match by authenticated user email
+        if (cleanEmail && o.userEmail && o.userEmail.toLowerCase() === cleanEmail) return true;
+        // Match by customer email filled at checkout
+        if (cleanEmail && o.customer?.email && o.customer.email.toLowerCase() === cleanEmail) return true;
+        // Match by local device order history IDs
+        if (myIds.includes(o.id)) return true;
+        return false;
+      });
+    },
+    [orders]
+  );
+
+  const getMyOrders = useCallback(
+    (uid?: string, email?: string): Order[] => {
+      return getCustomerOrders(uid, email);
+    },
+    [getCustomerOrders]
+  );
 
   const trackOrder = useCallback(
     (orderId: string, emailOrPhone?: string): Order | undefined => {
@@ -291,6 +335,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         deleteOrder,
         getOrderById,
         getMyOrders,
+        getCustomerOrders,
         trackOrder,
       }}
     >

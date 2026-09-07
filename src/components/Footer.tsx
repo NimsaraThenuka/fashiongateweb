@@ -65,42 +65,32 @@ export default function Footer() {
             {[
               {
                 icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
                     <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
                     <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
                   </svg>
                 ),
-                href: 'https://web.facebook.com/profile.php?id=61591346097510',
-                label: 'Instagram'
+                href: 'https://www.instagram.com/fashiongate56?igsh=MXV0eDJ4c3gxdmowdQ==',
+                label: 'Instagram (@fashiongate56)'
               },
               {
                 icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298-.002.595.042.88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z"/>
+                  </svg>
+                ),
+                href: 'https://www.tiktok.com/@_fashiongate_?_r=1&_t=ZS-98d9aVgHNfJ',
+                label: 'TikTok (@_fashiongate_)'
+              },
+              {
+                icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
                   </svg>
                 ),
-                href: 'https://web.facebook.com/profile.php?id=61591346097510',
+                href: 'https://www.facebook.com/share/1Dco8ueUx7/',
                 label: 'Facebook'
-              },
-              {
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/>
-                  </svg>
-                ),
-                href: 'https://web.facebook.com/profile.php?id=61591346097510',
-                label: 'Twitter'
-              },
-              {
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17z"/>
-                    <polygon points="10 15 15 12 10 9"/>
-                  </svg>
-                ),
-                href: 'https://web.facebook.com/profile.php?id=61591346097510',
-                label: 'Youtube'
               },
             ].map(({ icon, href, label }) => (
               <a
@@ -108,8 +98,9 @@ export default function Footer() {
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 border border-white/10 flex items-center justify-center text-white/50 hover:border-[#C4922A] hover:text-[#C4922A] hover:bg-white/5 transition-all duration-300 rounded-full focus:outline-none"
+                className="w-10 h-10 border border-white/10 flex items-center justify-center text-white/60 hover:border-[#C4922A] hover:text-[#C4922A] hover:bg-white/5 transition-all duration-300 rounded-full focus:outline-none"
                 aria-label={label}
+                title={label}
               >
                 {icon}
               </a>
@@ -185,7 +176,9 @@ export default function Footer() {
 
       {/* Bottom bar */}
       <div className="border-t border-white/10 max-w-[1400px] mx-auto px-6 md:px-10 py-6 flex flex-col md:flex-row justify-between items-center gap-3">
-        <p className="text-white/30 text-xs">© 2025 Fashion Gate. All rights reserved.</p>
+        <p className="text-white/40 text-xs">
+          © 2026 Fashion Gate (<a href="https://fashiongatesl.com" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-[#C4922A] transition-colors">fashiongatesl.com</a>). All rights reserved.
+        </p>
         <div className="flex gap-6">
           {[
             { label: 'Privacy Policy', href: '/legal?doc=privacy' },

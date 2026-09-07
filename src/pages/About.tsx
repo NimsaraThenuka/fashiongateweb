@@ -230,9 +230,8 @@ export default function About() {
           {SERVICES.map(({ icon: Icon, title, desc }, idx) => (
             <div
               key={title}
-              className={`border border-[#E8E4DF] p-8 rounded-sm bg-white hover:border-[#C4922A] hover:shadow-lg transition-all reveal ${
-                idx % 2 === 0 ? '' : 'delay-100'
-              }`}
+              className={`border border-[#E8E4DF] p-8 rounded-sm bg-white hover:border-[#C4922A] hover:shadow-lg transition-all reveal ${idx % 2 === 0 ? '' : 'delay-100'
+                }`}
             >
               <div className="w-10 h-10 bg-[#FAFAF8] border border-[#C4922A]/40 flex items-center justify-center text-[#C4922A] mb-5">
                 <Icon size={18} />

@@ -55,9 +55,8 @@ export default function FAQ() {
                 />
               </button>
               <div
-                className={`overflow-hidden transition-all duration-300 ${
-                  openIdx === idx ? 'max-h-[200px] pb-5' : 'max-h-0'
-                }`}
+                className={`overflow-hidden transition-all duration-300 ${openIdx === idx ? 'max-h-[200px] pb-5' : 'max-h-0'
+                  }`}
               >
                 <p className="text-sm text-[#4A4A4A] leading-relaxed">{faq.a}</p>
               </div>

@@ -67,26 +67,26 @@ export default function OrderTracking() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8] pt-28 md:pt-36 pb-20">
-      <div className="max-w-[900px] mx-auto px-4 md:px-8">
+    <div className="min-h-screen bg-[#FAFAF8] pt-24 md:pt-36 pb-20">
+      <div className="max-w-[900px] mx-auto px-4 sm:px-6 md:px-8">
         {/* Header */}
-        <div className="text-center mb-10 reveal">
-          <p className="text-xs text-[#C4922A] tracking-[0.2em] uppercase font-mono font-bold mb-2">
+        <div className="text-center mb-6 sm:mb-10 reveal">
+          <p className="text-[10px] sm:text-xs text-[#C4922A] tracking-[0.2em] uppercase font-mono font-bold mb-1.5 sm:mb-2">
             Real-Time Courier Tracking
           </p>
-          <h1 className="font-display text-3xl md:text-5xl font-bold text-[#0A0A0A]">
+          <h1 className="font-display text-2xl sm:text-3xl md:text-5xl font-bold text-[#0A0A0A]">
             Track Your Order
           </h1>
-          <p className="text-xs md:text-sm text-[#7A7A7A] mt-3 max-w-md mx-auto leading-relaxed">
+          <p className="text-[11px] sm:text-xs md:text-sm text-[#7A7A7A] mt-2 sm:mt-3 max-w-md mx-auto leading-relaxed">
             Enter your unique Order Key (e.g. <span className="font-mono font-semibold text-[#0A0A0A]">FG-2026-1042</span>) and optional phone/email to see live shipping status.
           </p>
         </div>
 
         {/* Tracking Input Card */}
-        <div className="bg-white border border-[#E8E4DF] p-6 md:p-8 rounded-sm shadow-xs mb-10 reveal">
-          <form onSubmit={handleTrack} className="grid grid-cols-1 md:grid-cols-[1.2fr_1fr_auto] gap-4 items-end">
+        <div className="bg-white border border-[#E8E4DF] p-4 sm:p-6 md:p-8 rounded-sm shadow-xs mb-6 sm:mb-10 reveal">
+          <form onSubmit={handleTrack} className="grid grid-cols-1 md:grid-cols-[1.2fr_1fr_auto] gap-3.5 sm:gap-4 items-end">
             <div>
-              <label className="block text-[10px] tracking-[0.1em] uppercase font-semibold text-[#0A0A0A] mb-1.5">
+              <label className="block text-[10.5px] sm:text-[11px] tracking-[0.08em] uppercase font-bold text-[#0A0A0A] mb-1.5">
                 Order Reference Key *
               </label>
               <input
@@ -95,12 +95,12 @@ export default function OrderTracking() {
                 value={orderId}
                 onChange={e => setOrderId(e.target.value)}
                 placeholder="e.g. FG-2026-8942"
-                className="w-full bg-[#FAFAF8] border border-[#E8E4DF] px-4 py-3 text-xs text-[#0A0A0A] font-mono outline-none focus:border-[#C4922A] rounded-xs uppercase tracking-wider"
+                className="w-full bg-[#FAFAF8] border border-[#E8E4DF] px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-[#0A0A0A] font-mono outline-none focus:border-[#C4922A] rounded-xs uppercase tracking-wider"
               />
             </div>
 
             <div>
-              <label className="block text-[10px] tracking-[0.1em] uppercase font-semibold text-[#0A0A0A] mb-1.5">
+              <label className="block text-[10.5px] sm:text-[11px] tracking-[0.08em] uppercase font-bold text-[#0A0A0A] mb-1.5">
                 Email or Phone (Optional)
               </label>
               <input
@@ -108,14 +108,14 @@ export default function OrderTracking() {
                 value={emailOrPhone}
                 onChange={e => setEmailOrPhone(e.target.value)}
                 placeholder="your@email.com or +94 77..."
-                className="w-full bg-[#FAFAF8] border border-[#E8E4DF] px-4 py-3 text-xs text-[#0A0A0A] outline-none focus:border-[#C4922A] rounded-xs"
+                className="w-full bg-[#FAFAF8] border border-[#E8E4DF] px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-[#0A0A0A] outline-none focus:border-[#C4922A] rounded-xs"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="btn-gold py-3 px-8 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shrink-0 shadow-md"
+              className="btn-gold py-3 px-8 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shrink-0 shadow-md w-full sm:w-auto"
             >
               {loading ? (
                 <>Searching...</>
@@ -175,11 +175,10 @@ export default function OrderTracking() {
                       <div key={idx} className="relative">
                         {/* Status Marker Dot */}
                         <span
-                          className={`absolute -left-[33px] top-0.5 w-4.5 h-4.5 rounded-full border-4 border-white flex items-center justify-center transition-all ${
-                            step.done
+                          className={`absolute -left-[33px] top-0.5 w-4.5 h-4.5 rounded-full border-4 border-white flex items-center justify-center transition-all ${step.done
                               ? 'bg-[#C4922A] shadow-[0_0_8px_rgba(196,146,42,0.6)]'
                               : 'bg-[#E8E4DF]'
-                          }`}
+                            }`}
                         >
                           {step.done && <CheckCircle2 size={10} className="text-white fill-white" />}
                         </span>
@@ -187,9 +186,8 @@ export default function OrderTracking() {
                         <div>
                           <div className="flex flex-wrap items-baseline justify-between gap-2">
                             <h4
-                              className={`text-xs font-bold uppercase tracking-wider ${
-                                step.done ? 'text-[#0A0A0A]' : 'text-[#9E9E9E]'
-                              }`}
+                              className={`text-xs font-bold uppercase tracking-wider ${step.done ? 'text-[#0A0A0A]' : 'text-[#9E9E9E]'
+                                }`}
                             >
                               {step.title}
                             </h4>

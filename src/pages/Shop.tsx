@@ -24,18 +24,18 @@ const PRICE_RANGES = [
 
 /* ── Women's sub-filter config ── */
 const WOMEN_OCCASIONS = [
-  { id: 'new',     label: 'New In' },
-  { id: 'work',    label: 'Work Wear' },
-  { id: 'casual',  label: 'Casual Wear' },
+  { id: 'new', label: 'New In' },
+  { id: 'work', label: 'Work Wear' },
+  { id: 'casual', label: 'Casual Wear' },
   { id: 'evening', label: 'Evening Wear' },
-  { id: 'active',  label: 'Active Wear' },
-  { id: 'denim',   label: 'Denim' },
+  { id: 'active', label: 'Active Wear' },
+  { id: 'denim', label: 'Denim' },
   { id: 'natural', label: 'Natural Blends' },
 ];
-const WOMEN_CLOTHING = ['Dresses','Tops','Pants','Blazers','Jeans','Jumpsuits','Shorts'];
+const WOMEN_CLOTHING = ['Dresses', 'Tops', 'Pants', 'Blazers', 'Jeans', 'Jumpsuits', 'Shorts'];
 
 /* ── Men's sub-filter config ── */
-const MEN_CLOTHING = ['T-Shirts','Shirts','Pants','Polo Shirts','Shorts','Jackets','Jeans'];
+const MEN_CLOTHING = ['T-Shirts', 'Shirts', 'Pants', 'Polo Shirts', 'Shorts', 'Jackets', 'Jeans'];
 
 /* ── Kids' sub-filter config ── */
 const KIDS_CLOTHING = ['Dresses', 'Shirts', 'Sets', 'Shorts'];
@@ -218,10 +218,9 @@ export default function Shop() {
 
   /* shared pill style */
   const pill = (active: boolean) =>
-    `px-4 py-2 text-[10px] tracking-[0.08em] uppercase font-medium transition-all duration-200 cursor-pointer ${
-      active
-        ? 'bg-[#C4922A] text-white shadow-sm'
-        : 'border border-[#E8E4DF] text-[#4A4A4A] hover:border-[#C4922A] hover:text-[#C4922A] bg-white'
+    `px-4 py-2 text-[10px] tracking-[0.08em] uppercase font-medium transition-all duration-200 cursor-pointer ${active
+      ? 'bg-[#C4922A] text-white shadow-sm'
+      : 'border border-[#E8E4DF] text-[#4A4A4A] hover:border-[#C4922A] hover:text-[#C4922A] bg-white'
     }`;
 
   const showSubFilters = catParam === 'women' || catParam === 'men' || catParam === 'kids';
@@ -247,11 +246,11 @@ export default function Shop() {
         </div>
       </div>
 
-      <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-10">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 py-6 md:py-10">
         {/* ─── Toolbar ─── */}
-        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between mb-6 pb-5 border-b border-[#E8E4DF]">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center justify-between mb-6 pb-4 sm:pb-5 border-b border-[#E8E4DF]">
           {/* Category pills */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {categories.map(cat => (
               <button
                 key={cat.id}
@@ -264,23 +263,26 @@ export default function Shop() {
           </div>
 
           {/* Controls */}
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0 flex-wrap">
             {/* Price filter button */}
             <div className="relative">
               <button
                 onClick={() => { setPriceOpen(!priceOpen); setSortOpen(false); }}
-                className="flex items-center gap-2 text-xs tracking-[0.08em] uppercase font-medium text-[#4A4A4A] hover:text-[#C4922A] transition-colors border border-[#E8E4DF] px-4 py-2 hover:border-[#C4922A] cursor-pointer"
+                className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs tracking-[0.08em] uppercase font-medium text-[#4A4A4A] hover:text-[#C4922A] transition-colors border border-[#E8E4DF] px-3 sm:px-4 py-2 hover:border-[#C4922A] cursor-pointer rounded-xs"
               >
                 <SlidersHorizontal size={13} /> Price
-                <ChevronDown size={12} className={`transition-transform ${priceOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown size={12} className={`transition-transform duration-200 ${priceOpen ? 'rotate-180' : ''}`} />
               </button>
               {priceOpen && (
-                <div className="absolute right-0 top-full mt-1 bg-white/95 backdrop-blur-md border border-[#E8E4DF]/80 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.08)] z-20 min-w-[200px] py-2 rounded-sm animate-dropdown">
+                <div className="absolute left-0 sm:left-auto sm:right-0 top-full mt-1.5 bg-white/98 backdrop-blur-md border border-[#E8E4DF] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] z-30 min-w-[210px] py-2 rounded-xs animate-dropdown">
+                  <div className="px-4 py-1.5 text-[9px] uppercase tracking-wider font-bold text-[#C4922A] border-b border-[#E8E4DF]/60 mb-1">
+                    Filter by Price
+                  </div>
                   {PRICE_RANGES.map((pr, i) => (
                     <button
                       key={i}
                       onClick={() => { setPriceRange(i); setPriceOpen(false); }}
-                      className={`block w-full text-left px-5 py-2.5 text-[10px] tracking-[0.06em] uppercase hover:bg-[#FAFAF8] hover:text-[#C4922A] transition-all cursor-pointer ${priceRange === i ? 'text-[#C4922A] font-semibold' : 'text-[#4A4A4A]'}`}
+                      className={`block w-full text-left px-4 py-2 text-[11px] tracking-[0.04em] uppercase hover:bg-[#FAFAF8] hover:text-[#C4922A] transition-all cursor-pointer whitespace-nowrap ${priceRange === i ? 'text-[#C4922A] font-bold bg-[#C4922A]/10' : 'text-[#4A4A4A]'}`}
                     >
                       {pr.label}
                     </button>
@@ -293,17 +295,20 @@ export default function Shop() {
             <div className="relative">
               <button
                 onClick={() => { setSortOpen(!sortOpen); setPriceOpen(false); }}
-                className="flex items-center gap-2 text-xs tracking-[0.08em] uppercase font-medium text-[#4A4A4A] hover:text-[#C4922A] transition-colors border border-[#E8E4DF] px-4 py-2 hover:border-[#C4922A] cursor-pointer"
+                className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs tracking-[0.08em] uppercase font-medium text-[#4A4A4A] hover:text-[#C4922A] transition-colors border border-[#E8E4DF] px-3 sm:px-4 py-2 hover:border-[#C4922A] cursor-pointer rounded-xs"
               >
-                Sort <ChevronDown size={12} className={`transition-transform ${sortOpen ? 'rotate-180' : ''}`} />
+                Sort <ChevronDown size={12} className={`transition-transform duration-200 ${sortOpen ? 'rotate-180' : ''}`} />
               </button>
               {sortOpen && (
-                <div className="absolute right-0 top-full mt-1 bg-white/95 backdrop-blur-md border border-[#E8E4DF]/80 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.08)] z-20 min-w-[180px] py-2 rounded-sm animate-dropdown">
+                <div className="absolute right-0 top-full mt-1.5 bg-white/98 backdrop-blur-md border border-[#E8E4DF] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] z-30 min-w-[190px] py-2 rounded-xs animate-dropdown">
+                  <div className="px-4 py-1.5 text-[9px] uppercase tracking-wider font-bold text-[#C4922A] border-b border-[#E8E4DF]/60 mb-1">
+                    Sort Products
+                  </div>
                   {SORT_OPTIONS.map(opt => (
                     <button
                       key={opt.val}
                       onClick={() => { setSort(opt.val); setSortOpen(false); }}
-                      className={`block w-full text-left px-5 py-2.5 text-[10px] tracking-[0.06em] uppercase hover:bg-[#FAFAF8] hover:text-[#C4922A] transition-all cursor-pointer ${sort === opt.val ? 'text-[#C4922A] font-semibold' : 'text-[#4A4A4A]'}`}
+                      className={`block w-full text-left px-4 py-2 text-[11px] tracking-[0.04em] uppercase hover:bg-[#FAFAF8] hover:text-[#C4922A] transition-all cursor-pointer whitespace-nowrap ${sort === opt.val ? 'text-[#C4922A] font-bold bg-[#C4922A]/10' : 'text-[#4A4A4A]'}`}
                     >
                       {opt.label}
                     </button>
@@ -313,16 +318,18 @@ export default function Shop() {
             </div>
 
             {/* Grid toggle */}
-            <div className="flex border border-[#E8E4DF]">
+            <div className="flex border border-[#E8E4DF] rounded-xs overflow-hidden">
               <button
                 onClick={() => setGrid(4)}
                 className={`p-2 transition-colors cursor-pointer ${grid === 4 ? 'bg-[#C4922A] text-white' : 'text-[#4A4A4A] hover:text-[#C4922A]'}`}
+                title="4-Column Grid"
               >
                 <Grid3X3 size={14} />
               </button>
               <button
                 onClick={() => setGrid(2)}
                 className={`p-2 transition-colors cursor-pointer ${grid === 2 ? 'bg-[#C4922A] text-white' : 'text-[#4A4A4A] hover:text-[#C4922A]'}`}
+                title="2-Column Grid"
               >
                 <LayoutList size={14} />
               </button>

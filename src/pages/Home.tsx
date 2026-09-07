@@ -37,28 +37,28 @@ const COLLECTIONS = [
   {
     label: "Women's",
     title: 'Femme Collection',
-    desc: 'Fluid forms, rich fabrics',
+    desc: 'Fluid forms & rich fabrics',
     image: 'https://images.unsplash.com/photo-1776262145093-ab3f69760686?w=700&h=900&fit=crop&auto=format',
     href: '/shop?cat=women',
   },
   {
     label: "Men's",
     title: 'Homme Collection',
-    desc: 'Sharp tailoring, quiet confidence',
+    desc: 'Sharp tailoring & modern fit',
     image: 'https://images.unsplash.com/photo-1617137968427-85924c800a22?w=700&h=900&fit=crop&auto=format',
     href: '/shop?cat=men',
   },
   {
     label: "Kids'",
     title: 'Petite Collection',
-    desc: 'Pure comfort, joyful charm',
+    desc: 'Pure comfort & joyful charm',
     image: 'https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?w=700&h=900&fit=crop&auto=format',
     href: '/shop?cat=kids',
   },
   {
     label: 'Accessories',
-    title: 'The Atelier',
-    desc: 'Finishing touches, perfectly crafted',
+    title: 'Atelier Collection',
+    desc: 'Finishing touches & luxury craft',
     image: 'https://images.unsplash.com/photo-1589363358751-ab05797e5629?w=700&h=900&fit=crop&auto=format',
     href: '/shop?cat=accessories',
   },
@@ -145,7 +145,7 @@ export default function Home() {
   const slide = HERO_SLIDES[activeSlide];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white overflow-x-hidden w-full max-w-full">
 
       {/* HERO */}
       <section className="relative h-screen min-h-[600px] overflow-hidden">
@@ -206,8 +206,8 @@ export default function Home() {
                   <div
                     key={activeSlide === i ? 'active' : 'inactive'}
                     className={`absolute inset-y-0 left-0 bg-[#C4922A] ${i === activeSlide
-                        ? 'w-full animate-slide-progress'
-                        : i < activeSlide ? 'w-full' : 'w-0'
+                      ? 'w-full animate-slide-progress'
+                      : i < activeSlide ? 'w-full' : 'w-0'
                       }`}
                   />
                 </div>
@@ -234,20 +234,34 @@ export default function Home() {
       </section>
 
       {/* Announcement Marquee Bar */}
-      <div className="bg-[#0A0A0A] text-white text-center py-3.5 text-xs tracking-[0.15em] uppercase overflow-hidden border-b border-white/5">
-        <div className="flex whitespace-nowrap animate-marquee">
-          <span className="mx-8">Free Shipping on Orders Over Rs. 25,000</span>
-          <span className="text-[#C4922A] mx-4">✦</span>
-          <span className="mx-8">New Collection — Summer Luxe 2025</span>
-          <span className="text-[#C4922A] mx-4">✦</span>
-          <span className="mx-8">Complimentary Gift Wrapping Available</span>
-          <span className="text-[#C4922A] mx-4">✦</span>
-          <span className="mx-8">Free Shipping on Orders Over Rs. 25,000</span>
-          <span className="text-[#C4922A] mx-4">✦</span>
-          <span className="mx-8">New Collection — Summer Luxe 2025</span>
-          <span className="text-[#C4922A] mx-4">✦</span>
-          <span className="mx-8">Complimentary Gift Wrapping Available</span>
-          <span className="text-[#C4922A] mx-4">✦</span>
+      <div className="bg-[#0A0A0A] text-white py-3 sm:py-3.5 text-[11px] sm:text-xs tracking-[0.16em] uppercase overflow-hidden border-b border-white/10 select-none relative">
+        <div className="flex w-max animate-marquee whitespace-nowrap">
+          {/* Half 1 */}
+          <div className="flex items-center shrink-0">
+            <span className="mx-4 sm:mx-8">Islandwide Delivery Flat Rs. 350</span>
+            <span className="text-[#C4922A] mx-3 sm:mx-4">✦</span>
+            <span className="mx-4 sm:mx-8">New Collection — Summer Luxe </span>
+            <span className="text-[#C4922A] mx-3 sm:mx-4">✦</span>
+            <span className="mx-4 sm:mx-8">Complimentary Gift Wrapping Available</span>
+            <span className="text-[#C4922A] mx-3 sm:mx-4">✦</span>
+            <span className="mx-4 sm:mx-8">Handloom &amp; Artisanal Tailoring</span>
+            <span className="text-[#C4922A] mx-3 sm:mx-4">✦</span>
+            <span className="mx-4 sm:mx-8">Express Doorstep Dispatch</span>
+            <span className="text-[#C4922A] mx-3 sm:mx-4">✦</span>
+          </div>
+          {/* Half 2 (Exact Clone for Infinite 100% Seamless Loop) */}
+          <div className="flex items-center shrink-0" aria-hidden="true">
+            <span className="mx-4 sm:mx-8">Islandwide Delivery Flat Rs. 350</span>
+            <span className="text-[#C4922A] mx-3 sm:mx-4">✦</span>
+            <span className="mx-4 sm:mx-8">New Collection — Summer Luxe </span>
+            <span className="text-[#C4922A] mx-3 sm:mx-4">✦</span>
+            <span className="mx-4 sm:mx-8">Complimentary Gift Wrapping Available</span>
+            <span className="text-[#C4922A] mx-3 sm:mx-4">✦</span>
+            <span className="mx-4 sm:mx-8">Handloom &amp; Artisanal Tailoring</span>
+            <span className="text-[#C4922A] mx-3 sm:mx-4">✦</span>
+            <span className="mx-4 sm:mx-8">Express Doorstep Dispatch</span>
+            <span className="text-[#C4922A] mx-3 sm:mx-4">✦</span>
+          </div>
         </div>
       </div>
 
@@ -269,39 +283,45 @@ export default function Home() {
       </section>
 
       {/* COLLECTIONS GRID */}
-      <section className="pt-20 pb-10 md:pt-28 md:pb-12 max-w-[1400px] mx-auto px-6 md:px-10">
-        <div className="mb-14 reveal">
+      <section className="pt-16 pb-10 md:pt-28 md:pb-12 max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 w-full overflow-hidden">
+        <div className="mb-10 md:mb-14 reveal">
           <LampContainer>
-            <p className="text-xs text-[#C4922A] tracking-[0.2em] uppercase mb-3 flex items-center gap-3 justify-center">
+            <p className="text-xs text-[#C4922A] tracking-[0.2em] uppercase mb-2 sm:mb-3 flex items-center gap-3 justify-center">
               <span className="w-8 h-px bg-[#C4922A]" /> Our Collections <span className="w-8 h-px bg-[#C4922A]" />
             </p>
-            <h2 className="font-display text-4xl md:text-5xl font-bold text-[#0A0A0A] text-center leading-tight">
+            <h2 className="font-display text-2xl sm:text-3xl md:text-5xl font-bold text-[#0A0A0A] text-center leading-tight">
               Curated for <em>Every Story</em>
             </h2>
           </LampContainer>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-          {COLLECTIONS.map((col, i) => (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 w-full">
+          {COLLECTIONS.map((col) => (
             <Link
               key={col.label}
               to={col.href}
-              className={`group relative overflow-hidden ${i % 2 === 0 ? 'reveal-left' : 'reveal-right'}`}
-              style={{ aspectRatio: '3/4' }}
+              className="group relative overflow-hidden rounded-xs sm:rounded-sm shadow-md w-full aspect-[3/4.2] sm:aspect-[3/4] reveal flex flex-col justify-end"
             >
               <img
                 src={col.image}
                 alt={col.title}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/55 to-black/15" />
               <div className="absolute inset-0 bg-[#C4922A]/0 group-hover:bg-[#C4922A]/10 transition-colors duration-500" />
-              <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-                <p className="text-[10px] text-[#E8B84B] tracking-[0.2em] uppercase mb-2">{col.label}</p>
-                <h3 className="font-display text-2xl md:text-3xl font-bold text-white mb-1">{col.title}</h3>
-                <p className="text-white/60 text-sm mb-4">{col.desc}</p>
-                <span className="inline-flex items-center gap-2 text-xs tracking-[0.1em] uppercase text-white/80 group-hover:text-[#E8B84B] transition-colors font-medium">
-                  Shop Now <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+
+              <div className="relative z-10 p-3 sm:p-4.5 md:p-6 lg:p-7 flex flex-col justify-end w-full">
+                <p className="text-[8.5px] sm:text-[10px] text-[#E8B84B] font-mono font-bold tracking-[0.15em] sm:tracking-[0.2em] uppercase mb-1 sm:mb-1.5 h-[14px] flex items-center">
+                  {col.label}
+                </p>
+                <h3 className="font-display text-[13px] sm:text-base md:text-xl lg:text-2xl font-bold text-white mb-1 leading-snug drop-shadow-sm min-h-[20px] sm:min-h-[26px] md:min-h-[30px] flex items-center">
+                  {col.title}
+                </h3>
+                <p className="text-white/80 text-[10px] sm:text-xs md:text-sm line-clamp-2 leading-tight sm:leading-normal mb-2.5 sm:mb-3.5 drop-shadow-xs min-h-[26px] sm:min-h-[32px] md:min-h-[38px] flex items-start">
+                  {col.desc}
+                </p>
+                <span className="inline-flex items-center gap-1 sm:gap-1.5 text-[9.5px] sm:text-xs tracking-[0.08em] sm:tracking-[0.1em] uppercase text-white font-bold group-hover:text-[#E8B84B] transition-colors whitespace-nowrap pt-0.5">
+                  Shop Now <ArrowRight size={11} className="group-hover:translate-x-1 transition-transform shrink-0" />
                 </span>
               </div>
             </Link>
@@ -317,10 +337,10 @@ export default function Home() {
       {/* NEW ARRIVALS */}
       <section className="pt-10 pb-20 md:pt-12 md:pb-28 bg-[#FAFAF8]">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10">
-          <div className="mb-14 reveal">
+          <div className="mb-10 md:mb-14 reveal">
             <LampContainer>
-              <p className="text-xs text-[#C4922A] tracking-[0.2em] uppercase mb-3">Just In</p>
-              <h2 className="font-display text-4xl md:text-5xl font-bold text-[#0A0A0A]">New Arrivals</h2>
+              <p className="text-xs text-[#C4922A] tracking-[0.2em] uppercase mb-2 sm:mb-3">Just In</p>
+              <h2 className="font-display text-2xl sm:text-3xl md:text-5xl font-bold text-[#0A0A0A]">New Arrivals</h2>
             </LampContainer>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
@@ -347,16 +367,16 @@ export default function Home() {
           }}
         >
           <div className="absolute inset-0 bg-gradient-to-l from-transparent via-black/30 to-black/80" />
-          <div className="relative max-w-[1400px] mx-auto px-6 md:px-10 py-24">
+          <div className="relative max-w-[1400px] mx-auto px-6 md:px-10 py-16 sm:py-24">
             <div className="max-w-xl reveal">
-              <p className="text-[#E8B84B] text-xs tracking-[0.25em] uppercase mb-5 flex items-center gap-3">
+              <p className="text-[#E8B84B] text-xs tracking-[0.25em] uppercase mb-3 sm:mb-5 flex items-center gap-3">
                 <span className="w-8 h-px bg-[#C4922A]" /> Featured Look
               </p>
-              <h2 className="font-display text-4xl md:text-6xl font-bold text-white leading-tight mb-6">
+              <h2 className="font-display text-3xl sm:text-4xl md:text-6xl font-bold text-white leading-tight mb-4 sm:mb-6">
                 Power Dressing<br />
                 <em>Reinvented</em>
               </h2>
-              <p className="text-white/70 text-base md:text-lg mb-10 leading-relaxed">
+              <p className="text-white/70 text-sm sm:text-base md:text-lg mb-6 sm:mb-10 leading-relaxed">
                 The Structured Velvet Blazer — a study in quiet authority. Command any room without saying a word.
               </p>
               <Link to="/shop?cat=women" className="btn-gold inline-flex items-center gap-2">
@@ -369,10 +389,10 @@ export default function Home() {
 
       {/* TRENDING */}
       <section className="pt-14 pb-20 md:pt-16 md:pb-28 max-w-[1400px] mx-auto px-6 md:px-10">
-        <div className="mb-14 reveal">
+        <div className="mb-10 md:mb-14 reveal">
           <LampContainer>
-            <p className="text-xs text-[#C4922A] tracking-[0.2em] uppercase mb-3">Most Wanted</p>
-            <h2 className="font-display text-4xl md:text-5xl font-bold text-[#0A0A0A]">Trending Now</h2>
+            <p className="text-xs text-[#C4922A] tracking-[0.2em] uppercase mb-2 sm:mb-3">Most Wanted</p>
+            <h2 className="font-display text-2xl sm:text-3xl md:text-5xl font-bold text-[#0A0A0A]">Trending Now</h2>
           </LampContainer>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
@@ -388,13 +408,13 @@ export default function Home() {
       </section>
 
       {/* INFINITE PRODUCT SCROLLING CAROUSEL */}
-      <section className="py-20 bg-[#FAFAF8] overflow-hidden border-t border-[#E8E4DF]/60">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-10 mb-14 reveal">
+      <section className="py-14 sm:py-20 bg-[#FAFAF8] overflow-hidden border-t border-[#E8E4DF]/60">
+        <div className="max-w-[1400px] mx-auto px-6 md:px-10 mb-10 md:mb-14 reveal">
           <LampContainer>
-            <p className="text-xs text-[#C4922A] tracking-[0.2em] uppercase mb-3">Atelier Collections</p>
-            <h2 className="font-display text-4xl md:text-5xl font-bold text-[#0A0A0A]">Timeless in Motion</h2>
+            <p className="text-xs text-[#C4922A] tracking-[0.2em] uppercase mb-2 sm:mb-3">Atelier Collections</p>
+            <h2 className="font-display text-2xl sm:text-3xl md:text-5xl font-bold text-[#0A0A0A]">Timeless in Motion</h2>
           </LampContainer>
-          <p className="text-center text-sm text-[#4A4A4A] max-w-md mx-auto mt-4">
+          <p className="text-center text-xs sm:text-sm text-[#4A4A4A] max-w-md mx-auto mt-3 sm:mt-4">
             Browse our signature edits in continuous cinematic motion. Hover over any piece to focus and inspect.
           </p>
         </div>
@@ -452,42 +472,42 @@ export default function Home() {
         {/* Soft background dark overlay removed to allow dots to shine clearly */}
 
         <div className="relative max-w-[1400px] mx-auto px-6 md:px-10 z-10">
-          <div className="text-center mb-14 reveal">
-            <p className="text-xs text-[#C4922A] tracking-[0.2em] uppercase mb-3">Customer Reviews</p>
-            <h2 className="font-display text-4xl md:text-5xl font-bold text-white">What Our Customers Say</h2>
+          <div className="text-center mb-10 md:mb-14 reveal">
+            <p className="text-xs text-[#C4922A] tracking-[0.2em] uppercase mb-2 sm:mb-3">Customer Reviews</p>
+            <h2 className="font-display text-2xl sm:text-3xl md:text-5xl font-bold text-white">What Our Customers Say</h2>
           </div>
 
-          <div className="max-w-4xl mx-auto relative px-8 md:px-16 flex items-center justify-center min-h-[300px] md:min-h-[220px]">
+          <div className="max-w-4xl mx-auto relative px-6 sm:px-8 md:px-16 flex items-center justify-center min-h-[280px] md:min-h-[220px]">
             {/* Prev Button */}
             <button
               onClick={() => setActiveStory(prev => (prev - 1 + TESTIMONIALS.length) % TESTIMONIALS.length)}
-              className="absolute left-0 w-10 h-10 border border-white/10 flex items-center justify-center text-white hover:border-[#C4922A] hover:text-[#C4922A] hover:bg-white/5 transition-all rounded-full cursor-pointer z-20 focus:outline-none"
+              className="absolute left-0 w-8 h-8 sm:w-10 sm:h-10 border border-white/10 flex items-center justify-center text-white hover:border-[#C4922A] hover:text-[#C4922A] hover:bg-white/5 transition-all rounded-full cursor-pointer z-20 focus:outline-none"
               aria-label="Previous review"
             >
-              <ChevronLeft size={18} />
+              <ChevronLeft size={16} />
             </button>
 
-            <div className="w-full relative min-h-[260px] md:min-h-[180px]">
+            <div className="w-full relative min-h-[240px] md:min-h-[180px]">
               {TESTIMONIALS.map((t, i) => (
                 <div
                   key={i}
                   className={`transition-all duration-1000 absolute inset-x-0 top-0 flex flex-col items-center justify-center ${i === activeStory
-                      ? 'opacity-100 translate-y-0 relative z-10 pointer-events-auto'
-                      : 'opacity-0 translate-y-6 absolute z-0 pointer-events-none'
+                    ? 'opacity-100 translate-y-0 relative z-10 pointer-events-auto'
+                    : 'opacity-0 translate-y-6 absolute z-0 pointer-events-none'
                     }`}
                   style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
                 >
-                  <div className="flex justify-center mb-5">
+                  <div className="flex justify-center mb-4 sm:mb-5">
                     {Array.from({ length: t.rating }).map((_, j) => (
-                      <Star key={j} size={14} className="fill-[#C4922A] text-[#C4922A] mx-0.5" />
+                      <Star key={j} size={13} className="fill-[#C4922A] text-[#C4922A] mx-0.5" />
                     ))}
                   </div>
-                  <p className="text-white/80 text-base md:text-lg leading-relaxed mb-6 italic font-display max-w-xl px-4">
+                  <p className="text-white/80 text-sm sm:text-base md:text-lg leading-relaxed mb-4 sm:mb-6 italic font-display max-w-xl px-2 sm:px-4 text-center">
                     "{t.text}"
                   </p>
-                  <div>
-                    <p className="text-white font-semibold text-sm tracking-wide">{t.name}</p>
-                    <p className="text-[#C4922A] text-xs tracking-[0.1em] uppercase mt-1">{t.role}</p>
+                  <div className="text-center">
+                    <p className="text-white font-semibold text-xs sm:text-sm tracking-wide">{t.name}</p>
+                    <p className="text-[#C4922A] text-[11px] sm:text-xs tracking-[0.1em] uppercase mt-0.5 sm:mt-1">{t.role}</p>
                   </div>
                 </div>
               ))}
@@ -496,10 +516,10 @@ export default function Home() {
             {/* Next Button */}
             <button
               onClick={() => setActiveStory(prev => (prev + 1) % TESTIMONIALS.length)}
-              className="absolute right-0 w-10 h-10 border border-white/10 flex items-center justify-center text-white hover:border-[#C4922A] hover:text-[#C4922A] hover:bg-white/5 transition-all rounded-full cursor-pointer z-20 focus:outline-none"
+              className="absolute right-0 w-8 h-8 sm:w-10 sm:h-10 border border-white/10 flex items-center justify-center text-white hover:border-[#C4922A] hover:text-[#C4922A] hover:bg-white/5 transition-all rounded-full cursor-pointer z-20 focus:outline-none"
               aria-label="Next review"
             >
-              <ChevronRight size={18} />
+              <ChevronRight size={16} />
             </button>
           </div>
 
@@ -519,8 +539,8 @@ export default function Home() {
       </section>
 
       {/* BRAND STORY */}
-      <section className="py-20 md:py-28 max-w-[1400px] mx-auto px-6 md:px-10">
-        <div className="grid md:grid-cols-2 gap-16 items-center">
+      <section className="py-16 md:py-28 max-w-[1400px] mx-auto px-6 md:px-10">
+        <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center">
           <div className="relative reveal-left">
             <div
               className="aspect-square rounded-sm overflow-hidden shadow-2xl"
@@ -536,16 +556,16 @@ export default function Home() {
             </div>
           </div>
           <div className="reveal-right text-center md:text-left flex flex-col items-center md:items-start">
-            <p className="text-xs text-[#C4922A] tracking-[0.2em] uppercase mb-4 flex items-center justify-center md:justify-start gap-3">
+            <p className="text-xs text-[#C4922A] tracking-[0.2em] uppercase mb-3 sm:mb-4 flex items-center justify-center md:justify-start gap-3">
               <span className="w-8 h-px bg-[#C4922A]" /> Welcome to Fashion Gate
             </p>
-            <h2 className="font-display text-4xl md:text-5xl font-bold text-[#0A0A0A] leading-tight mb-6">
+            <h2 className="font-display text-2xl sm:text-4xl md:text-5xl font-bold text-[#0A0A0A] leading-tight mb-4 sm:mb-6">
               Where True Style <span className="hidden md:inline"><br /></span>is <em>Timeless</em>
             </h2>
-            <p className="text-[#4A4A4A] leading-relaxed mb-4 text-center md:text-left">
+            <p className="text-[#4A4A4A] text-xs sm:text-sm md:text-base leading-relaxed mb-3 sm:mb-4 text-center md:text-left">
               At Fashion Gate, we believe that true style is timeless. Our brand is dedicated to offering elegant, high-quality fashion that empowers women to express their confidence with grace.
             </p>
-            <p className="text-[#4A4A4A] leading-relaxed mb-8 text-center md:text-left">
+            <p className="text-[#4A4A4A] text-xs sm:text-sm md:text-base leading-relaxed mb-6 sm:mb-8 text-center md:text-left">
               Every collection is carefully selected to blend comfort, sophistication, and modern trends, ensuring every piece reflects effortless elegance. From everyday essentials to statement outfits, Fashion Gate brings fashion that complements every lifestyle.
             </p>
             <Link to="/about" className="btn-gold inline-flex items-center justify-center gap-2 mx-auto md:mx-0 w-full sm:w-auto">
@@ -555,15 +575,15 @@ export default function Home() {
         </div>
       </section>
       {/* ATELIER GALLERY GATEWAY SECTION */}
-      <section className="py-20 md:py-28 bg-[#0A0A0A] text-white">
+      <section className="py-16 md:py-28 bg-[#0A0A0A] text-white">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10">
           {/* Glowing Golden Header */}
-          <div className="mb-16 reveal">
+          <div className="mb-10 md:mb-16 reveal">
             <LampContainer>
-              <p className="text-xs text-[#C4922A] tracking-[0.25em] uppercase mb-4 flex items-center justify-center gap-3">
+              <p className="text-xs text-[#C4922A] tracking-[0.25em] uppercase mb-3 sm:mb-4 flex items-center justify-center gap-3">
                 <span className="w-8 h-px bg-[#C4922A]" /> Visual Stories <span className="w-8 h-px bg-[#C4922A]" />
               </p>
-              <h2 className="font-display text-4xl md:text-5xl font-bold text-white text-center leading-tight">
+              <h2 className="font-display text-2xl sm:text-3xl md:text-5xl font-bold text-white text-center leading-tight">
                 The Atelier <em>Gallery</em>
               </h2>
             </LampContainer>
@@ -653,8 +673,8 @@ export default function Home() {
                   <div
                     key={idx}
                     className={`transition-all duration-1000 absolute inset-0 flex flex-col justify-center ${idx === activeCampaignSlide
-                        ? 'opacity-100 translate-x-0 relative pointer-events-auto'
-                        : 'opacity-0 translate-x-12 absolute pointer-events-none'
+                      ? 'opacity-100 translate-x-0 relative pointer-events-auto'
+                      : 'opacity-0 translate-x-12 absolute pointer-events-none'
                       }`}
                     style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
                   >
@@ -704,7 +724,14 @@ export default function Home() {
       {/* INSTAGRAM STRIP */}
       <section className="pb-20 md:pb-28 max-w-[1400px] mx-auto px-6 md:px-10">
         <div className="text-center mb-10 reveal">
-          <p className="text-xs text-[#C4922A] tracking-[0.2em] uppercase mb-2">@fashiongate</p>
+          <a
+            href="https://www.instagram.com/fashiongate56?igsh=MXV0eDJ4c3gxdmowdQ=="
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block text-xs text-[#C4922A] hover:text-[#0A0A0A] tracking-[0.2em] uppercase mb-2 font-mono font-bold transition-colors"
+          >
+            @fashiongate56
+          </a>
           <h2 className="font-display text-3xl font-bold text-[#0A0A0A]">Follow Our World</h2>
         </div>
         <div className="grid grid-cols-4 md:grid-cols-6 gap-2 reveal">
@@ -716,7 +743,14 @@ export default function Home() {
             'photo-1779154137940-a251f8c92b10',
             'photo-1705909237050-7a7625b47fac',
           ].map(id => (
-            <a key={id} href="#" className="group relative overflow-hidden aspect-square bg-[#F2F0ED]">
+            <a
+              key={id}
+              href="https://www.instagram.com/fashiongate56?igsh=MXV0eDJ4c3gxdmowdQ=="
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group relative overflow-hidden aspect-square bg-[#F2F0ED]"
+              title="View on Instagram @fashiongate56"
+            >
               <img
                 src={`https://images.unsplash.com/${id}?w=400&h=400&fit=crop&auto=format`}
                 alt="Fashion Gate Instagram"

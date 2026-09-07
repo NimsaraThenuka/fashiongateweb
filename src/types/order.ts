@@ -41,9 +41,36 @@ export interface TrackingStep {
   active?: boolean;
 }
 
+export interface CustomerAddress {
+  fullName: string;
+  phone: string;
+  address: string;
+  city: string;
+  postalCode?: string;
+  province: string;
+}
+
+export interface CustomerUser {
+  uid: string;
+  email: string;
+  displayName: string;
+  photoURL?: string;
+  phoneNumber?: string;
+  gender?: string;
+  dateOfBirth?: string;
+  preferredSize?: string;
+  bio?: string;
+  createdAt: string;
+  lastLoginAt?: string;
+  defaultAddress?: CustomerAddress;
+}
+
 export interface Order {
   id: string; // e.g. "FG-2026-8942"
   createdAt: string; // ISO string
+  userId?: string; // Google Auth UID
+  userEmail?: string;
+  userPhotoURL?: string;
   customer: CustomerDetails;
   items: OrderItem[];
   subtotal: number;
@@ -58,4 +85,6 @@ export interface Order {
   estimatedDelivery?: string;
   trackingTimeline: TrackingStep[];
   notes?: string;
+  bankReceipt?: string;
+  bankReceiptName?: string;
 }

@@ -96,12 +96,12 @@ export default function ProductCard({ product, index = 0, hideMobileActions = fa
 
   return (
     <div
-      className="product-card group reveal"
+      className="product-card group reveal h-full flex flex-col"
       style={{ animationDelay: delay }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <Link to={`/product/${product.id}`} className="block">
+      <Link to={`/product/${product.id}`} className="flex flex-col h-full">
         {/* Image container */}
         <div className="relative overflow-hidden bg-[#F2F0ED] aspect-[3/4]">
           {product.images && product.images.length > 0 ? (
@@ -122,14 +122,17 @@ export default function ProductCard({ product, index = 0, hideMobileActions = fa
             />
           )}
 
-          {/* Image Navigation Dots (Always Visible) */}
+          {/* Mobile Image Navigation Dots (Inside image bottom only on mobile) */}
           {product.images && product.images.length > 1 && (
-            <div className="product-dots absolute bottom-12 md:bottom-14 left-1/2 -translate-x-1/2 flex gap-1.5 z-30 transition-opacity duration-300 opacity-100">
+            <div className="product-dots md:hidden absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1 z-30 transition-opacity duration-300 opacity-100 pointer-events-none">
               {product.images.map((_, idx) => (
                 <span
                   key={idx}
-                  className={`w-2 h-2 rounded-full transition-all duration-300 shadow-[0_1.5px_4px_rgba(0,0,0,0.65)] border border-black/15 ${idx === hoveredImgIdx ? 'bg-[#C4922A] w-4.5 border-[#C4922A]/20' : 'bg-white/95'
-                    }`}
+                  className={`h-1 rounded-full transition-all duration-300 shadow-[0_1px_3px_rgba(0,0,0,0.6)] border border-black/20 ${
+                    idx === hoveredImgIdx
+                      ? 'bg-[#C4922A] w-3 border-[#C4922A]/30'
+                      : 'bg-white/90 w-1'
+                  }`}
                 />
               ))}
             </div>
@@ -241,27 +244,43 @@ export default function ProductCard({ product, index = 0, hideMobileActions = fa
           </div>
         </div>
 
+        {/* Desktop Image Navigation Dots (Cleanly positioned below image) */}
+        <div className="hidden md:flex items-center justify-center gap-1.5 h-3.5 mt-2 mb-0.5 pointer-events-none">
+          {product.images && product.images.length > 1 ? (
+            product.images.map((_, idx) => (
+              <span
+                key={idx}
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  idx === hoveredImgIdx
+                    ? 'bg-[#C4922A] w-4'
+                    : 'bg-[#DCD8D0] w-1.5'
+                }`}
+              />
+            ))
+          ) : null}
+        </div>
+
         {/* Info */}
-        <div className="pt-2.5 md:pt-4 pb-2 px-0.5">
+        <div className="pt-1.5 md:pt-1 pb-2 px-0.5 flex-1 flex flex-col">
           <div className="flex items-center justify-between gap-1 mb-0.5 md:mb-1">
-            <p className="text-[8px] md:text-[10px] text-[#9E9E9E] tracking-[0.1em] uppercase">{product.subcategory}</p>
+            <p className="text-[8px] md:text-[10px] text-[#9E9E9E] tracking-[0.1em] uppercase font-medium">{product.subcategory}</p>
             {!product.inStock && (
               <span className="text-[8px] md:text-[9px] uppercase tracking-wider font-bold text-red-600">
                 Out of Stock
               </span>
             )}
           </div>
-          <h3 className="font-display text-[#0A0A0A] font-semibold text-xs md:text-base leading-snug mb-1 md:mb-2 group-hover:text-[#C4922A] transition-colors line-clamp-2">
+          <h3 className="font-display text-[#0A0A0A] font-semibold text-xs md:text-base leading-snug mb-1 md:mb-1.5 group-hover:text-[#C4922A] transition-colors line-clamp-2 min-h-[2.1rem] md:min-h-[2.75rem] flex items-start">
             {product.name}
           </h3>
-          <div className="flex items-center gap-1.5 md:gap-2">
-            <span className="text-[#0A0A0A] font-semibold text-xs md:text-sm">Rs. {product.price.toLocaleString()}</span>
+          <div className="flex items-center gap-1.5 md:gap-2 flex-wrap min-h-[1.25rem]">
+            <span className="text-[#0A0A0A] font-semibold text-xs md:text-sm whitespace-nowrap">Rs. {product.price.toLocaleString()}</span>
             {product.originalPrice && (
-              <span className="text-[#9E9E9E] text-[10px] md:text-sm line-through">Rs. {product.originalPrice.toLocaleString()}</span>
+              <span className="text-[#9E9E9E] text-[10px] md:text-xs line-through whitespace-nowrap">Rs. {product.originalPrice.toLocaleString()}</span>
             )}
           </div>
           {/* Stars */}
-          <div className="flex items-center gap-1 md:gap-1.5 mt-1 md:mt-1.5">
+          <div className="flex items-center gap-1 md:gap-1.5 mt-1">
             <div className="flex">
               {Array.from({ length: 5 }).map((_, i) => (
                 <svg key={i} className="w-2 h-2 md:w-2.5 md:h-2.5" viewBox="0 0 10 10">
@@ -275,44 +294,23 @@ export default function ProductCard({ product, index = 0, hideMobileActions = fa
             <span className="text-[8px] md:text-[10px] text-[#9E9E9E]">({product.reviews})</span>
           </div>
 
-          {/* Mobile Actions Row (Visible only on mobile viewports) */}
+          {/* Mobile Action (Sleek Full-Width Button, Always Aligned at Bottom) */}
           {!hideMobileActions && (
-            <div className="flex md:hidden gap-1.5 mt-3 w-full">
+            <div className="mt-auto pt-2.5 w-full md:hidden">
               {product.inStock ? (
-                <button
-                  onClick={handleQuickAdd}
-                  disabled={isAdding || added}
-                  className={`flex-1 flex items-center justify-center gap-1 text-white text-[9px] tracking-[0.08em] uppercase font-bold py-2 transition-all cursor-pointer rounded-xs ${added
-                      ? 'bg-[#2E7D32]'
-                      : isAdding
-                        ? 'bg-[#96700A] cursor-wait animate-pulse'
-                        : 'bg-[#C4922A] hover:bg-[#96700A]'
-                    }`}
+                <div
+                  className="w-full flex items-center justify-center gap-1.5 bg-[#C4922A] hover:bg-[#96700A] active:scale-[0.98] text-white text-[10px] tracking-[0.08em] uppercase font-bold py-2 px-2 transition-all rounded-xs shadow-xs"
                 >
-                  {isAdding ? (
-                    <span>Adding...</span>
-                  ) : added ? (
-                    <span>✓ Added</span>
-                  ) : (
-                    <>
-                      <ShoppingBag size={10} /> Quick Add
-                    </>
-                  )}
-                </button>
+                  <ShoppingBag size={11} className="shrink-0" />
+                  <span className="whitespace-nowrap">Select Options</span>
+                </div>
               ) : (
-                <button
-                  disabled
-                  className="flex-1 flex items-center justify-center gap-1 bg-[#222222] text-[#888888] text-[9px] tracking-[0.08em] uppercase font-bold py-2 border border-white/10 cursor-not-allowed rounded-xs select-none"
+                <div
+                  className="w-full flex items-center justify-center gap-1 bg-[#222222] text-[#888888] text-[9px] tracking-[0.08em] uppercase font-bold py-2 px-2 border border-white/10 rounded-xs select-none"
                 >
                   Out of Stock
-                </button>
+                </div>
               )}
-              <Link
-                to={`/product/${product.id}`}
-                className="w-8 flex items-center justify-center bg-white text-[#0A0A0A] border border-[#E8E4DF] hover:bg-[#F2F0ED] transition-colors shrink-0 rounded-xs"
-              >
-                <Eye size={12} />
-              </Link>
             </div>
           )}
         </div>
