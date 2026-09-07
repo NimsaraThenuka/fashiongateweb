@@ -322,7 +322,8 @@ export async function signInWithGooglePopup(): Promise<CustomerUser> {
     } else if (error.code === 'auth/configuration-not-found' || error.code === 'auth/operation-not-allowed') {
       throw new Error('FIREBASE_GOOGLE_NOT_ENABLED: Google Sign-In is not enabled in Firebase Authentication console. Please enable Google Provider in Firebase.');
     } else if (error.code === 'auth/unauthorized-domain') {
-      throw new Error('FIREBASE_UNAUTHORIZED_DOMAIN: This domain is not authorized in Firebase Authentication console. Please add your domain to Authorized Domains.');
+      const currentHost = typeof window !== 'undefined' ? window.location.hostname : 'this domain';
+      throw new Error(`FIREBASE_UNAUTHORIZED_DOMAIN: "${currentHost}" is not authorized in Firebase. Please add "${currentHost}" to Firebase Authentication -> Settings -> Authorized Domains.`);
     }
     throw new Error(error.message || 'Google Sign-In failed. Please try again.');
   }
