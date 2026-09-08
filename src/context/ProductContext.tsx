@@ -8,6 +8,10 @@ import {
   deleteProductFromFirestore,
   batchUploadAllProductsToFirestore,
   subscribeToFirestoreProducts,
+  getDeletedProductIds,
+  addDeletedProductId,
+  removeDeletedProductId,
+  clearDeletedProductIds,
 } from '../services/firebase';
 
 interface ProductContextType {
@@ -32,13 +36,48 @@ const normalizeProduct = (p: Product): Product => {
   const stock = typeof p.stockQuantity === 'number' ? Math.max(0, p.stockQuantity) : (p.inStock ? 12 : 0);
   return {
     ...p,
+    id: Number(p.id),
+    price: Number(p.price || 0),
     stockQuantity: stock,
     inStock: stock > 0,
+    images: Array.isArray(p.images) && p.images.length > 0 ? p.images : (p.image ? [p.image] : []),
+    sizes: Array.isArray(p.sizes) && p.sizes.length > 0 ? p.sizes : ['One Size'],
+    colors: Array.isArray(p.colors) && p.colors.length > 0 ? p.colors : ['Standard'],
   };
 };
 
 const normalizeProductList = (list: Product[]): Product[] => {
-  return list.map(normalizeProduct);
+  const deletedIds = new Set(getDeletedProductIds());
+  return list.filter(p => !deletedIds.has(Number(p.id))).map(normalizeProduct);
+};
+
+// Merges cloud products and local products without losing newly created local products
+const mergeCloudAndLocalProducts = (cloudList: Product[], localList: Product[]): Product[] => {
+  const deletedIds = new Set(getDeletedProductIds());
+  const productMap = new Map<number, Product>();
+
+  // 1. Populate with valid non-deleted cloud products
+  cloudList.forEach(p => {
+    const numId = Number(p.id);
+    if (!deletedIds.has(numId)) {
+      productMap.set(numId, normalizeProduct(p));
+    }
+  });
+
+  // 2. Add any local products not yet present in cloud (e.g. freshly created products)
+  localList.forEach(localP => {
+    const numId = Number(localP.id);
+    if (!deletedIds.has(numId) && !productMap.has(numId)) {
+      const normalized = normalizeProduct(localP);
+      productMap.set(numId, normalized);
+      // Auto-sync this local piece to Firestore
+      saveProductToFirestore(normalized).catch(err =>
+        console.warn('Auto cloud sync notice for local product:', err)
+      );
+    }
+  });
+
+  return Array.from(productMap.values());
 };
 
 export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -57,20 +96,29 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
   useEffect(() => {
     let isMounted = true;
 
-    // 1. Initial fetch from Firestore (or auto-seed if empty)
+    // 1. Initial fetch from Firestore
     async function initFirestore() {
       try {
         const cloudProducts = await fetchProductsFromFirestore();
-        if (isMounted && cloudProducts && cloudProducts.length > 0) {
-          const normalized = normalizeProductList(cloudProducts);
-          setProducts(normalized);
-          saveLocalStoredProducts(normalized);
-          setCloudSyncStatus('connected');
-        } else if (isMounted && (!cloudProducts || cloudProducts.length === 0)) {
-          const current = getLocalStoredProducts() || initialProducts;
-          const normalized = normalizeProductList(current);
-          await batchUploadAllProductsToFirestore(normalized);
-          setCloudSyncStatus('connected');
+        const currentLocal = getLocalStoredProducts() || [];
+        const baseLocal = currentLocal.length > 0 ? currentLocal : initialProducts;
+
+        if (cloudProducts && cloudProducts.length > 0) {
+          const merged = mergeCloudAndLocalProducts(cloudProducts, baseLocal);
+          if (isMounted) {
+            setProducts(merged);
+            saveLocalStoredProducts(merged);
+            setCloudSyncStatus('connected');
+          }
+        } else {
+          // Cloud empty or offline: use local products, seed cloud
+          const fallback = normalizeProductList(baseLocal);
+          if (isMounted) {
+            setProducts(fallback);
+            saveLocalStoredProducts(fallback);
+          }
+          await batchUploadAllProductsToFirestore(fallback);
+          if (isMounted) setCloudSyncStatus('connected');
         }
       } catch (err) {
         console.warn('Firestore initial load notice:', err);
@@ -83,9 +131,10 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const unsubscribeFirestore = subscribeToFirestoreProducts(
       cloudProducts => {
         if (isMounted && cloudProducts && cloudProducts.length > 0) {
-          const normalized = normalizeProductList(cloudProducts);
-          setProducts(normalized);
-          saveLocalStoredProducts(normalized);
+          const currentLocal = getLocalStoredProducts() || [];
+          const merged = mergeCloudAndLocalProducts(cloudProducts, currentLocal);
+          setProducts(merged);
+          saveLocalStoredProducts(merged);
           setCloudSyncStatus('connected');
         }
       },
@@ -138,7 +187,12 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const addProduct = (data: Omit<Product, 'id' | 'rating' | 'reviews'>): Product => {
-    const nextId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
+    // Determine the highest existing ID across memory + localStorage
+    const local = getLocalStoredProducts() || [];
+    const allKnown = [...products, ...local];
+    const maxId = allKnown.length > 0 ? Math.max(...allKnown.map(p => Number(p.id) || 0)) : 0;
+    const nextId = maxId + 1;
+
     const stockQty = typeof data.stockQuantity === 'number' ? Math.max(0, data.stockQuantity) : (data.inStock ? 10 : 0);
     const newProduct: Product = {
       ...data,
@@ -148,9 +202,13 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       stockQuantity: stockQty,
       inStock: stockQty > 0,
       images: data.images && data.images.length > 0 ? data.images : [data.image],
+      sizes: data.sizes && data.sizes.length > 0 ? data.sizes : ['One Size'],
+      colors: data.colors && data.colors.length > 0 ? data.colors : ['Standard'],
     };
 
-    const nextList = [newProduct, ...products];
+    removeDeletedProductId(nextId);
+
+    const nextList = [newProduct, ...products.filter(p => p.id !== nextId)];
     setProducts(nextList);
     broadcastProducts(nextList);
 
@@ -197,6 +255,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const deleteProduct = (id: number) => {
+    addDeletedProductId(id);
     const nextList = products.filter(p => p.id !== id);
     setProducts(nextList);
     broadcastProducts(nextList);
@@ -277,7 +336,8 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const resetToDefaults = () => {
-    const normalized = normalizeProductList(initialProducts);
+    clearDeletedProductIds();
+    const normalized = initialProducts.map(normalizeProduct);
     setProducts(normalized);
     broadcastProducts(normalized);
     batchUploadAllProductsToFirestore(normalized).catch(err =>

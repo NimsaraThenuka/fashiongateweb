@@ -37,6 +37,7 @@ export const DEFAULT_FIREBASE_CONFIG: FirebaseConfig = {
 
 const FIREBASE_CONFIG_KEY = 'fashiongate_firebase_config';
 const PRODUCTS_STORAGE_KEY = 'fashiongate_live_products';
+const DELETED_PRODUCTS_KEY = 'fashiongate_deleted_product_ids';
 
 export function getStoredFirebaseConfig(): FirebaseConfig {
   try {
@@ -127,6 +128,87 @@ export function saveLocalStoredProducts(products: Product[]): void {
   }
 }
 
+// Deleted Product IDs Tracking (Prevents Firestore onSnapshot from resurrecting deleted items locally)
+export function getDeletedProductIds(): number[] {
+  try {
+    const raw = localStorage.getItem(DELETED_PRODUCTS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function addDeletedProductId(id: number): void {
+  try {
+    const ids = getDeletedProductIds();
+    if (!ids.includes(id)) {
+      ids.push(id);
+      localStorage.setItem(DELETED_PRODUCTS_KEY, JSON.stringify(ids));
+    }
+  } catch (e) {
+    console.error('Error saving deleted product id:', e);
+  }
+}
+
+export function removeDeletedProductId(id: number): void {
+  try {
+    const ids = getDeletedProductIds().filter(existingId => existingId !== id);
+    localStorage.setItem(DELETED_PRODUCTS_KEY, JSON.stringify(ids));
+  } catch (e) {
+    console.error('Error removing deleted product id:', e);
+  }
+}
+
+export function clearDeletedProductIds(): void {
+  try {
+    localStorage.removeItem(DELETED_PRODUCTS_KEY);
+  } catch (e) {
+    console.error('Error clearing deleted product ids:', e);
+  }
+}
+
+/**
+ * Sanitizes and cleans a Product object for Firestore.
+ * Strips all `undefined` values that cause Firestore `setDoc` to throw errors.
+ */
+export function cleanProductForFirestore(product: Product): Record<string, any> {
+  const cleaned: Record<string, any> = JSON.parse(JSON.stringify(product));
+  cleaned.id = Number(cleaned.id || product.id);
+  cleaned.name = String(cleaned.name || '').trim();
+  cleaned.price = Number(cleaned.price || 0);
+  cleaned.category = cleaned.category || 'women';
+  cleaned.subcategory = String(cleaned.subcategory || '').trim();
+  cleaned.image = String(cleaned.image || '').trim();
+  cleaned.images = Array.isArray(cleaned.images) && cleaned.images.length > 0 ? cleaned.images : [cleaned.image];
+  cleaned.sizes = Array.isArray(cleaned.sizes) && cleaned.sizes.length > 0 ? cleaned.sizes : ['One Size'];
+  cleaned.colors = Array.isArray(cleaned.colors) && cleaned.colors.length > 0 ? cleaned.colors : ['Standard'];
+  cleaned.description = String(cleaned.description || '').trim();
+  cleaned.stockQuantity = typeof cleaned.stockQuantity === 'number' ? Math.max(0, cleaned.stockQuantity) : (cleaned.inStock ? 10 : 0);
+  cleaned.inStock = cleaned.stockQuantity > 0;
+  cleaned.rating = typeof cleaned.rating === 'number' ? cleaned.rating : 5.0;
+  cleaned.reviews = typeof cleaned.reviews === 'number' ? cleaned.reviews : 1;
+
+  if (product.originalPrice && Number(product.originalPrice) > 0) {
+    cleaned.originalPrice = Number(product.originalPrice);
+  } else {
+    delete cleaned.originalPrice;
+  }
+
+  if (product.sizeFit && String(product.sizeFit).trim()) {
+    cleaned.sizeFit = String(product.sizeFit).trim();
+  } else {
+    delete cleaned.sizeFit;
+  }
+
+  if (product.badge) {
+    cleaned.badge = product.badge;
+  } else {
+    delete cleaned.badge;
+  }
+
+  return cleaned;
+}
+
 // Firestore CRUD operations & Real-time Subscriptions
 
 /**
@@ -214,7 +296,9 @@ export async function saveProductToFirestore(product: Product): Promise<boolean>
 
   try {
     const docRef = doc(db, 'products', String(product.id));
-    await setDoc(docRef, { ...product }, { merge: true });
+    const cleaned = cleanProductForFirestore(product);
+    await setDoc(docRef, cleaned, { merge: true });
+    removeDeletedProductId(product.id);
     return true;
   } catch (err) {
     console.error(`Failed to save product #${product.id} to Firestore:`, err);
@@ -232,6 +316,7 @@ export async function deleteProductFromFirestore(id: number): Promise<boolean> {
   try {
     const docRef = doc(db, 'products', String(id));
     await deleteDoc(docRef);
+    addDeletedProductId(id);
     return true;
   } catch (err) {
     console.error(`Failed to delete product #${id} from Firestore:`, err);
@@ -250,7 +335,8 @@ export async function batchUploadAllProductsToFirestore(products: Product[]): Pr
     const batch = writeBatch(db);
     for (const p of products) {
       const docRef = doc(db, 'products', String(p.id));
-      batch.set(docRef, { ...p }, { merge: true });
+      const cleaned = cleanProductForFirestore(p);
+      batch.set(docRef, cleaned, { merge: true });
     }
     await batch.commit();
     return true;

@@ -146,19 +146,14 @@ export default function Home() {
   const prevSlide = () => goToSlide((activeSlide - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
   const nextSlide = () => goToSlide((activeSlide + 1) % HERO_SLIDES.length);
 
-  // Dynamic Collections Grid: Auto-links latest image & product count from live products
+  // Curated Editorial Collections Grid with live dynamic counts
   const dynamicCollections = useMemo(() => {
-    const latestWomen = products.find(p => p.category === 'women');
-    const latestMen = products.find(p => p.category === 'men');
-    const latestKids = products.find(p => p.category === 'kids');
-    const latestAcc = products.find(p => p.category === 'accessories');
-
     return [
       {
         label: "Women's",
         title: 'Femme Collection',
         desc: 'Fluid forms & rich fabrics',
-        image: latestWomen?.image || 'https://images.unsplash.com/photo-1776262145093-ab3f69760686?w=700&h=900&fit=crop&auto=format',
+        image: 'https://images.unsplash.com/photo-1776262145093-ab3f69760686?w=800&h=1000&fit=crop&auto=format',
         href: '/shop?cat=women',
         count: products.filter(p => p.category === 'women').length,
       },
@@ -166,7 +161,7 @@ export default function Home() {
         label: "Men's",
         title: 'Homme Collection',
         desc: 'Sharp tailoring & modern fit',
-        image: latestMen?.image || 'https://images.unsplash.com/photo-1617137968427-85924c800a22?w=700&h=900&fit=crop&auto=format',
+        image: 'https://images.unsplash.com/photo-1617137968427-85924c800a22?w=800&h=1000&fit=crop&auto=format',
         href: '/shop?cat=men',
         count: products.filter(p => p.category === 'men').length,
       },
@@ -174,7 +169,7 @@ export default function Home() {
         label: "Kids'",
         title: 'Petite Collection',
         desc: 'Pure comfort & joyful charm',
-        image: latestKids?.image || 'https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?w=700&h=900&fit=crop&auto=format',
+        image: 'https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=800&h=1000&fit=crop&auto=format',
         href: '/shop?cat=kids',
         count: products.filter(p => p.category === 'kids').length,
       },
@@ -182,7 +177,7 @@ export default function Home() {
         label: 'Accessories',
         title: 'Atelier Collection',
         desc: 'Finishing touches & luxury craft',
-        image: latestAcc?.image || 'https://images.unsplash.com/photo-1589363358751-ab05797e5629?w=700&h=900&fit=crop&auto=format',
+        image: 'https://images.unsplash.com/photo-1589363358751-ab05797e5629?w=800&h=1000&fit=crop&auto=format',
         href: '/shop?cat=accessories',
         count: products.filter(p => p.category === 'accessories').length,
       },
@@ -379,7 +374,7 @@ export default function Home() {
             <Link
               key={col.label}
               to={col.href}
-              className="group relative overflow-hidden rounded-xs sm:rounded-sm shadow-md w-full aspect-[3/4.2] sm:aspect-[3/4] reveal flex flex-col justify-end"
+              className="group relative overflow-hidden rounded-xs sm:rounded-sm shadow-md w-full aspect-[3/4.2] sm:aspect-[3/4] flex flex-col justify-end"
             >
               <img
                 src={col.image}
@@ -389,26 +384,37 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/55 to-black/15" />
               <div className="absolute inset-0 bg-[#C4922A]/0 group-hover:bg-[#C4922A]/10 transition-colors duration-500" />
 
-              <div className="relative z-10 p-3 sm:p-4.5 md:p-6 lg:p-7 flex flex-col justify-end w-full">
-                <div className="flex items-center justify-between gap-2 mb-1 sm:mb-1.5 h-[14px]">
-                  <p className="text-[8.5px] sm:text-[10px] text-[#E8B84B] font-mono font-bold tracking-[0.15em] sm:tracking-[0.2em] uppercase">
+              <div className="relative z-10 p-3.5 sm:p-4.5 md:p-6 lg:p-7 flex flex-col justify-end w-full">
+                {/* Category Tag & Items Count Row */}
+                <div className="h-4 sm:h-5 flex items-center justify-between gap-2 mb-1 sm:mb-1.5">
+                  <p className="text-[8.5px] sm:text-[10px] text-[#E8B84B] font-mono font-bold tracking-[0.15em] sm:tracking-[0.2em] uppercase leading-none">
                     {col.label}
                   </p>
-                  {col.count > 0 && (
-                    <span className="text-[8px] sm:text-[9px] text-white/70 font-mono">
-                      {col.count} {col.count === 1 ? 'item' : 'items'}
-                    </span>
-                  )}
+                  <span className="text-[8px] sm:text-[9px] text-white/70 font-mono leading-none">
+                    {col.count} {col.count === 1 ? 'item' : 'items'}
+                  </span>
                 </div>
-                <h3 className="font-display text-[13px] sm:text-base md:text-xl lg:text-2xl font-bold text-white mb-1 leading-snug drop-shadow-sm min-h-[20px] sm:min-h-[26px] md:min-h-[30px] flex items-center">
-                  {col.title}
-                </h3>
-                <p className="hidden sm:flex text-white/80 text-[10px] sm:text-xs md:text-sm line-clamp-2 leading-tight sm:leading-normal mb-2.5 sm:mb-3.5 drop-shadow-xs sm:min-h-[32px] md:min-h-[38px] items-start">
-                  {col.desc}
-                </p>
-                <span className="inline-flex items-center gap-1 sm:gap-1.5 text-[9.5px] sm:text-xs tracking-[0.08em] sm:tracking-[0.1em] uppercase text-white font-bold group-hover:text-[#E8B84B] transition-colors whitespace-nowrap pt-0.5">
-                  Shop Now <ArrowRight size={11} className="group-hover:translate-x-1 transition-transform shrink-0" />
-                </span>
+
+                {/* Collection Title */}
+                <div className="h-6 sm:h-7 md:h-8 flex items-center mb-1">
+                  <h3 className="font-display text-[13px] sm:text-base md:text-xl lg:text-2xl font-bold text-white leading-none drop-shadow-sm truncate">
+                    {col.title}
+                  </h3>
+                </div>
+
+                {/* Collection Description (Hidden on mobile, perfectly aligned on desktop/tablet) */}
+                <div className="hidden sm:flex h-8 sm:h-9 md:h-10 items-center mb-2.5 sm:mb-3.5">
+                  <p className="text-white/80 text-[10px] sm:text-xs md:text-sm line-clamp-2 leading-tight sm:leading-snug drop-shadow-xs">
+                    {col.desc}
+                  </p>
+                </div>
+
+                {/* CTA Button Row */}
+                <div className="h-5 sm:h-6 flex items-center">
+                  <span className="inline-flex items-center gap-1 sm:gap-1.5 text-[9.5px] sm:text-xs tracking-[0.08em] sm:tracking-[0.1em] uppercase text-white font-bold group-hover:text-[#E8B84B] transition-colors whitespace-nowrap leading-none">
+                    Shop Now <ArrowRight size={11} className="group-hover:translate-x-1 transition-transform shrink-0" />
+                  </span>
+                </div>
               </div>
             </Link>
           ))}
