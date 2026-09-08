@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Play, ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import { ArrowRight, Play, ChevronLeft, ChevronRight, Star, Sparkles } from 'lucide-react';
 import { useProducts } from '../context/ProductContext';
 import ProductCard from '../components/ProductCard';
 import { useReveal } from '../hooks/useReveal';
@@ -9,7 +9,7 @@ import { LampContainer } from '../components/Lamp';
 const HERO_SLIDES = [
   {
     image: 'https://images.unsplash.com/photo-1779399147584-6c479647263b?w=1920&h=1080&fit=crop&auto=format',
-    tag: 'Summer Collection 2025',
+    tag: 'Summer Collection ',
     title: 'The Art of\nElegance',
     sub: 'Discover pieces that define you',
     cta: 'Explore Women\'s',
@@ -33,37 +33,6 @@ const HERO_SLIDES = [
   },
 ];
 
-const COLLECTIONS = [
-  {
-    label: "Women's",
-    title: 'Femme Collection',
-    desc: 'Fluid forms & rich fabrics',
-    image: 'https://images.unsplash.com/photo-1776262145093-ab3f69760686?w=700&h=900&fit=crop&auto=format',
-    href: '/shop?cat=women',
-  },
-  {
-    label: "Men's",
-    title: 'Homme Collection',
-    desc: 'Sharp tailoring & modern fit',
-    image: 'https://images.unsplash.com/photo-1617137968427-85924c800a22?w=700&h=900&fit=crop&auto=format',
-    href: '/shop?cat=men',
-  },
-  {
-    label: "Kids'",
-    title: 'Petite Collection',
-    desc: 'Pure comfort & joyful charm',
-    image: 'https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?w=700&h=900&fit=crop&auto=format',
-    href: '/shop?cat=kids',
-  },
-  {
-    label: 'Accessories',
-    title: 'Atelier Collection',
-    desc: 'Finishing touches & luxury craft',
-    image: 'https://images.unsplash.com/photo-1589363358751-ab05797e5629?w=700&h=900&fit=crop&auto=format',
-    href: '/shop?cat=accessories',
-  },
-];
-
 const TESTIMONIALS = [
   { name: 'Sanduni Perera', role: 'Colombo', text: 'Fashion Gate has completely changed how I shop. The linen quality is unmatched, and I love that it supports local handloom weavers. Truly world-class island fashion.', rating: 5 },
   { name: 'Dinuka Fernando', role: 'Kandy', text: 'The tailoring on my linen blazer is absolutely perfect. It keeps me cool during outdoor client meetings in Colombo while looking incredibly sharp.', rating: 5 },
@@ -77,8 +46,46 @@ export default function Home() {
   const { products } = useProducts();
   const [activeSlide, setActiveSlide] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [activeCategoryTab, setActiveCategoryTab] = useState<'all' | 'women' | 'men' | 'kids' | 'accessories' | 'new'>('all');
   const heroTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const tabsContainerRef = useRef<HTMLDivElement | null>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
   useReveal();
+
+  const checkTabsScroll = useCallback(() => {
+    const el = tabsContainerRef.current;
+    if (!el) return;
+    const scrollLeft = el.scrollLeft;
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    setCanScrollLeft(scrollLeft > 6);
+    setCanScrollRight(scrollLeft < maxScroll - 6);
+  }, []);
+
+  useEffect(() => {
+    const el = tabsContainerRef.current;
+    if (!el) return;
+    checkTabsScroll();
+    el.addEventListener('scroll', checkTabsScroll, { passive: true });
+    window.addEventListener('resize', checkTabsScroll);
+
+    const timer = setTimeout(checkTabsScroll, 300);
+
+    return () => {
+      el.removeEventListener('scroll', checkTabsScroll);
+      window.removeEventListener('resize', checkTabsScroll);
+      clearTimeout(timer);
+    };
+  }, [checkTabsScroll, products]);
+
+  const scrollTabs = (direction: 'left' | 'right') => {
+    if (tabsContainerRef.current) {
+      tabsContainerRef.current.scrollBy({
+        left: direction === 'left' ? -180 : 180,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   const goToSlide = (idx: number) => {
     if (isTransitioning) return;
@@ -90,8 +97,8 @@ export default function Home() {
   };
 
   const [activeStory, setActiveStory] = useState(0);
-
   const [activeCampaignSlide, setActiveCampaignSlide] = useState(0);
+
   const CAMPAIGN_SLIDES = [
     {
       tag: "Summer Atelier 2025",
@@ -139,8 +146,80 @@ export default function Home() {
   const prevSlide = () => goToSlide((activeSlide - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
   const nextSlide = () => goToSlide((activeSlide + 1) % HERO_SLIDES.length);
 
-  const newArrivals = products.filter(p => p.badge === 'new' || p.badge === 'trending').slice(0, 4);
-  const featured = products.filter(p => p.badge === 'limited' || p.badge === 'sale').slice(0, 4);
+  // Dynamic Collections Grid: Auto-links latest image & product count from live products
+  const dynamicCollections = useMemo(() => {
+    const latestWomen = products.find(p => p.category === 'women');
+    const latestMen = products.find(p => p.category === 'men');
+    const latestKids = products.find(p => p.category === 'kids');
+    const latestAcc = products.find(p => p.category === 'accessories');
+
+    return [
+      {
+        label: "Women's",
+        title: 'Femme Collection',
+        desc: 'Fluid forms & rich fabrics',
+        image: latestWomen?.image || 'https://images.unsplash.com/photo-1776262145093-ab3f69760686?w=700&h=900&fit=crop&auto=format',
+        href: '/shop?cat=women',
+        count: products.filter(p => p.category === 'women').length,
+      },
+      {
+        label: "Men's",
+        title: 'Homme Collection',
+        desc: 'Sharp tailoring & modern fit',
+        image: latestMen?.image || 'https://images.unsplash.com/photo-1617137968427-85924c800a22?w=700&h=900&fit=crop&auto=format',
+        href: '/shop?cat=men',
+        count: products.filter(p => p.category === 'men').length,
+      },
+      {
+        label: "Kids'",
+        title: 'Petite Collection',
+        desc: 'Pure comfort & joyful charm',
+        image: latestKids?.image || 'https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?w=700&h=900&fit=crop&auto=format',
+        href: '/shop?cat=kids',
+        count: products.filter(p => p.category === 'kids').length,
+      },
+      {
+        label: 'Accessories',
+        title: 'Atelier Collection',
+        desc: 'Finishing touches & luxury craft',
+        image: latestAcc?.image || 'https://images.unsplash.com/photo-1589363358751-ab05797e5629?w=700&h=900&fit=crop&auto=format',
+        href: '/shop?cat=accessories',
+        count: products.filter(p => p.category === 'accessories').length,
+      },
+    ];
+  }, [products]);
+
+  // Dynamic New Arrivals: Prioritizes products marked as 'new' or category 'new' or latest created
+  const newArrivals = useMemo(() => {
+    let filtered = products;
+    if (activeCategoryTab !== 'all') {
+      if (activeCategoryTab === 'new') {
+        filtered = products.filter(p => p.badge === 'new' || p.category === 'new');
+      } else {
+        filtered = products.filter(p => p.category === activeCategoryTab);
+      }
+    }
+
+    const explicitlyNew = filtered.filter(p => p.badge === 'new' || p.category === 'new');
+    const others = filtered.filter(p => !explicitlyNew.some(n => n.id === p.id));
+    return [...explicitlyNew, ...others].slice(0, 8);
+  }, [products, activeCategoryTab]);
+
+  // Dynamic Trending: Prioritizes trending, limited, sale badges
+  const featured = useMemo(() => {
+    const trendingList = products.filter(p => p.badge === 'trending' || p.badge === 'limited' || p.badge === 'sale' || Boolean(p.originalPrice));
+    const others = products.filter(p => !trendingList.some(t => t.id === p.id));
+    return [...trendingList, ...others].slice(0, 8);
+  }, [products]);
+
+  // Dynamic Timeless in Motion marquee list: Includes ALL products from live database
+  const marqueeProducts = useMemo(() => {
+    if (!products || products.length === 0) return [];
+    if (products.length < 5) {
+      return [...products, ...products, ...products, ...products];
+    }
+    return [...products, ...products];
+  }, [products]);
 
   const slide = HERO_SLIDES[activeSlide];
 
@@ -269,7 +348,7 @@ export default function Home() {
       <section className="bg-[#0A0A0A] py-8">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 grid grid-cols-2 md:grid-cols-4 gap-8">
           {[
-            { val: 'Men & Women', label: 'Fashion & Lifestyle' },
+            { val: `${products.length}+ Pieces`, label: 'Live Curations' },
             { val: 'Islandwide', label: 'Sri Lanka Delivery' },
             { val: 'Premium', label: 'Quality Curations' },
             { val: 'Dedicated', label: 'Customer Support' },
@@ -296,7 +375,7 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 w-full">
-          {COLLECTIONS.map((col) => (
+          {dynamicCollections.map((col) => (
             <Link
               key={col.label}
               to={col.href}
@@ -311,13 +390,20 @@ export default function Home() {
               <div className="absolute inset-0 bg-[#C4922A]/0 group-hover:bg-[#C4922A]/10 transition-colors duration-500" />
 
               <div className="relative z-10 p-3 sm:p-4.5 md:p-6 lg:p-7 flex flex-col justify-end w-full">
-                <p className="text-[8.5px] sm:text-[10px] text-[#E8B84B] font-mono font-bold tracking-[0.15em] sm:tracking-[0.2em] uppercase mb-1 sm:mb-1.5 h-[14px] flex items-center">
-                  {col.label}
-                </p>
+                <div className="flex items-center justify-between gap-2 mb-1 sm:mb-1.5 h-[14px]">
+                  <p className="text-[8.5px] sm:text-[10px] text-[#E8B84B] font-mono font-bold tracking-[0.15em] sm:tracking-[0.2em] uppercase">
+                    {col.label}
+                  </p>
+                  {col.count > 0 && (
+                    <span className="text-[8px] sm:text-[9px] text-white/70 font-mono">
+                      {col.count} {col.count === 1 ? 'item' : 'items'}
+                    </span>
+                  )}
+                </div>
                 <h3 className="font-display text-[13px] sm:text-base md:text-xl lg:text-2xl font-bold text-white mb-1 leading-snug drop-shadow-sm min-h-[20px] sm:min-h-[26px] md:min-h-[30px] flex items-center">
                   {col.title}
                 </h3>
-                <p className="text-white/80 text-[10px] sm:text-xs md:text-sm line-clamp-2 leading-tight sm:leading-normal mb-2.5 sm:mb-3.5 drop-shadow-xs min-h-[26px] sm:min-h-[32px] md:min-h-[38px] flex items-start">
+                <p className="hidden sm:flex text-white/80 text-[10px] sm:text-xs md:text-sm line-clamp-2 leading-tight sm:leading-normal mb-2.5 sm:mb-3.5 drop-shadow-xs sm:min-h-[32px] md:min-h-[38px] items-start">
                   {col.desc}
                 </p>
                 <span className="inline-flex items-center gap-1 sm:gap-1.5 text-[9.5px] sm:text-xs tracking-[0.08em] sm:tracking-[0.1em] uppercase text-white font-bold group-hover:text-[#E8B84B] transition-colors whitespace-nowrap pt-0.5">
@@ -334,23 +420,113 @@ export default function Home() {
         </div>
       </section>
 
-      {/* NEW ARRIVALS */}
+      {/* NEW ARRIVALS & CATEGORY SHOWCASE */}
       <section className="pt-10 pb-20 md:pt-12 md:pb-28 bg-[#FAFAF8]">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-10">
-          <div className="mb-10 md:mb-14 reveal">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10">
+          <div className="mb-8 md:mb-12 reveal">
             <LampContainer>
-              <p className="text-xs text-[#C4922A] tracking-[0.2em] uppercase mb-2 sm:mb-3">Just In</p>
-              <h2 className="font-display text-2xl sm:text-3xl md:text-5xl font-bold text-[#0A0A0A]">New Arrivals</h2>
+              <p className="text-xs text-[#C4922A] tracking-[0.2em] uppercase mb-2 sm:mb-3 flex items-center justify-center gap-2">
+                <Sparkles size={13} /> Just In &amp; Latest Edits
+              </p>
+              <h2 className="font-display text-2xl sm:text-3xl md:text-5xl font-bold text-[#0A0A0A] text-center">New Arrivals</h2>
             </LampContainer>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {newArrivals.map((product, i) => (
-              <ProductCard key={product.id} product={product} index={i} />
-            ))}
+
+          {/* Interactive Category Filter Tabs on Home Page with Top Mobile Arrows */}
+          <div className="w-full mb-8 md:mb-12 reveal">
+            {/* Mobile Top Controls Bar with Clean Left/Right Arrow Buttons (Above tabs to prevent any text cropping) */}
+            <div className="flex items-center justify-between mb-2.5 md:hidden px-0.5">
+              <span className="text-[10px] font-semibold text-[#8A8A8A] uppercase tracking-wider flex items-center gap-1.5">
+                <Sparkles size={11} className="text-[#C4922A]" /> Filter Collections
+              </span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => scrollTabs('left')}
+                  disabled={!canScrollLeft}
+                  className={`w-7 h-7 rounded-full border flex items-center justify-center transition-all ${canScrollLeft
+                      ? 'bg-white border-[#E8E4DF] text-[#0A0A0A] hover:border-[#C4922A] hover:text-[#C4922A] shadow-xs active:scale-90 cursor-pointer'
+                      : 'bg-[#F2F0ED] border-transparent text-[#B5B0A8] cursor-not-allowed opacity-40'
+                    }`}
+                  aria-label="Previous categories"
+                >
+                  <ChevronLeft size={14} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollTabs('right')}
+                  disabled={!canScrollRight}
+                  className={`w-7 h-7 rounded-full border flex items-center justify-center transition-all ${canScrollRight
+                      ? 'bg-[#0A0A0A] border-[#0A0A0A] text-[#E8B84B] shadow-xs active:scale-90 cursor-pointer'
+                      : 'bg-[#F2F0ED] border-transparent text-[#B5B0A8] cursor-not-allowed opacity-40'
+                    }`}
+                  aria-label="Next categories"
+                >
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            </div>
+
+            {/* Tabs scrollable row (Unoccluded, full width, zero text overlap) */}
+            <div
+              ref={tabsContainerRef}
+              className="w-full overflow-x-auto pb-2.5 tabs-scrollbar-mini scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0"
+            >
+              <div className="flex items-center justify-start md:justify-center gap-2 sm:gap-2.5 w-max min-w-full px-1 sm:px-0">
+                {[
+                  { id: 'all', label: 'All Curations' },
+                  { id: 'new', label: 'New Arrivals' },
+                  { id: 'women', label: "Women's" },
+                  { id: 'men', label: "Men's" },
+                  { id: 'kids', label: "Kids'" },
+                  { id: 'accessories', label: 'Accessories' },
+                ].map((tab) => {
+                  const count = tab.id === 'all'
+                    ? products.length
+                    : tab.id === 'new'
+                      ? products.filter(p => p.badge === 'new' || p.category === 'new').length
+                      : products.filter(p => p.category === tab.id).length;
+
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveCategoryTab(tab.id as any)}
+                      className={`px-3.5 sm:px-5 py-2 text-[10.5px] sm:text-xs font-semibold tracking-wider uppercase rounded-xs transition-all cursor-pointer shrink-0 border flex items-center gap-1.5 ${activeCategoryTab === tab.id
+                          ? 'bg-[#0A0A0A] text-[#E8B84B] border-[#0A0A0A] shadow-sm'
+                          : 'bg-white text-[#4A4A4A] border-[#E8E4DF] hover:border-[#C4922A] hover:text-[#0A0A0A]'
+                        }`}
+                    >
+                      <span className="whitespace-nowrap">{tab.label}</span>
+                      <span className={`text-[9px] px-1.5 py-0.2 rounded-2xs font-mono font-bold ${activeCategoryTab === tab.id ? 'bg-white/20 text-white' : 'bg-[#F2F0ED] text-[#7A7A7A]'
+                        }`}>
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
+
+          {/* Product Grid */}
+          {newArrivals.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+              {newArrivals.map((product, i) => (
+                <ProductCard key={product.id} product={product} index={i} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16 bg-white border border-[#E8E4DF] rounded-xs">
+              <p className="text-sm text-[#7A7A7A]">No pieces found in this category yet.</p>
+              <Link to="/shop" className="btn-gold mt-4 inline-block">
+                Explore Full Shop
+              </Link>
+            </div>
+          )}
+
           <div className="text-center mt-12 reveal">
-            <Link to="/shop" className="btn-outline-gold inline-block">
-              <span>View All New Arrivals</span>
+            <Link to={activeCategoryTab !== 'all' ? `/shop?cat=${activeCategoryTab}` : '/shop'} className="btn-outline-gold inline-block">
+              <span>View All {activeCategoryTab !== 'all' ? activeCategoryTab : 'New Arrivals'}</span>
             </Link>
           </div>
         </div>
@@ -426,9 +602,9 @@ export default function Home() {
           <div className="absolute inset-y-0 right-0 w-16 md:w-32 bg-gradient-to-l from-[#FAFAF8] to-transparent z-25 pointer-events-none" />
 
           <div className="flex w-max animate-product-marquee gap-6 px-6">
-            {/* Render 6 products twice to create a seamless infinite loop */}
-            {[...products.slice(0, 6), ...products.slice(0, 6)].map((product, idx) => (
-              <div key={idx} className="w-[220px] md:w-[280px] shrink-0 bg-white p-3 rounded-xs border border-[#E8E4DF]/40 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_30px_-10px_rgba(196,146,42,0.12)] transition-all">
+            {/* Render all live products in continuous infinite loop */}
+            {marqueeProducts.map((product, idx) => (
+              <div key={`${product.id}-${idx}`} className="w-[220px] md:w-[280px] shrink-0 bg-white p-3 rounded-xs border border-[#E8E4DF]/40 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_30px_-10px_rgba(196,146,42,0.12)] transition-all">
                 <ProductCard product={product} />
               </div>
             ))}

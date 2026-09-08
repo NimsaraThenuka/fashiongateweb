@@ -190,13 +190,13 @@ export default function Navbar() {
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${navBg}`}
       >
-        <nav className="max-w-[1400px] mx-auto px-5 md:px-10 flex items-center h-20 md:h-24 relative w-full">
+        <nav className="max-w-[1440px] xl:max-w-[1560px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 flex md:grid md:grid-cols-[1fr_auto_1fr] items-center justify-between h-20 md:h-24 relative w-full">
           {/* Reusable Nav Link Renderer */}
           {(() => {
             const renderLink = (link: typeof navLinks[0]) => {
               const isActive = link.href === '/'
                 ? location.pathname === '/'
-                : location.pathname === link.href || location.pathname.startsWith(link.href);
+                : location.pathname === link.href || (link.href !== '/' && location.pathname.startsWith(link.href));
               const hasSub = link.sub || link.columns;
 
               return (
@@ -208,11 +208,11 @@ export default function Navbar() {
                 >
                   <Link
                     to={link.href}
-                    className={`relative flex items-center gap-1.5 text-[11px] tracking-[0.15em] uppercase font-semibold transition-colors duration-300 ${isActive ? 'text-[#C4922A]' : textColor
-                      } hover:text-[#C4922A] pb-1.5`}
+                    className={`relative flex items-center gap-1 text-[10.5px] lg:text-[11px] xl:text-[11.5px] tracking-[0.12em] lg:tracking-[0.15em] uppercase font-semibold transition-colors duration-300 ${isActive ? 'text-[#C4922A]' : textColor
+                      } hover:text-[#C4922A] pb-1.5 whitespace-nowrap`}
                   >
                     {link.label}
-                    {hasSub && <ChevronDown size={11} className="transition-transform group-hover:rotate-180 duration-300" />}
+                    {hasSub && <ChevronDown size={11} className="transition-transform group-hover:rotate-180 duration-300 shrink-0" />}
                     <span className={`absolute bottom-0 left-0 right-0 h-[1.5px] bg-[#C4922A] transition-all duration-300 ${isActive ? 'w-full' : 'w-0 group-hover:w-full'
                       }`} />
                   </Link>
@@ -267,174 +267,219 @@ export default function Navbar() {
 
             return (
               <>
-                {/* Desktop Nav Links (Left block - 5 links: Home, Women's, Men's, Kids', Collections) */}
-                <div className="hidden md:flex items-center gap-4 lg:gap-6 xl:gap-7 z-10">
+                {/* Desktop Left Nav Links (5 links: Home, Women's, Men's, Kids', Collections) */}
+                <div className="hidden md:flex items-center justify-end gap-3.5 lg:gap-5 xl:gap-7 pr-6 lg:pr-9 xl:pr-12 z-10">
                   {navLinks.slice(0, 5).map(link => renderLink(link))}
                 </div>
 
                 {/* Logo Center */}
-                <Link to="/" className="absolute left-5 md:left-1/2 md:-translate-x-1/2 flex items-center z-20">
+                <Link to="/" className="flex items-center justify-center shrink-0 z-20 mx-auto md:mx-0 -translate-y-1 md:-translate-y-2">
                   <img
                     src={LOGO_URL}
                     alt="Fashion Gate"
-                    className="h-20 md:h-40 w-auto object-contain transition-all duration-300 py-0.5"
+                    className="h-[74px] sm:h-[84px] md:h-28 lg:h-32 xl:h-36 w-auto object-contain transition-all duration-300 py-0.5"
                     style={{ filter: scrolled || !isHome ? 'none' : 'brightness(0) invert(1)' }}
                   />
                 </Link>
 
-                {/* Desktop Nav Links (Right block - remaining 3 links: Gallery, About, Contact) */}
-                <div className="hidden md:flex items-center gap-5 lg:gap-7 xl:gap-8 z-10 ml-auto mr-4 lg:mr-6">
-                  {navLinks.slice(5).map(link => renderLink(link))}
+                {/* Desktop Right Section (3 Links: Gallery, About, Contact + Action Icons) */}
+                <div className="hidden md:flex items-center justify-between pl-6 lg:pl-9 xl:pl-12 gap-3 lg:gap-5 z-10 w-full">
+                  {/* Desktop Nav Links (Right block: Gallery, About, Contact) */}
+                  <div className="flex items-center gap-3.5 lg:gap-5 xl:gap-7 shrink-0">
+                    {navLinks.slice(5).map(link => renderLink(link))}
+                  </div>
+
+                  {/* Right Side Icons */}
+                  <div className="flex items-center gap-2.5 sm:gap-3 lg:gap-4 ml-auto shrink-0 z-20">
+                    <button
+                      onClick={() => setSearchOpen(true)}
+                      className={`${textColor} hover:text-[#C4922A] transition-colors p-1.5 cursor-pointer`}
+                      aria-label="Search"
+                    >
+                      <Search size={19} />
+                    </button>
+
+                    {/* Order Tracking Quick Link */}
+                    <Link
+                      to="/order-tracking"
+                      className={`relative ${textColor} hover:text-[#C4922A] transition-colors p-1.5 flex items-center`}
+                      title="Track Your Order"
+                      aria-label="Track Order"
+                    >
+                      <Truck size={19} />
+                    </Link>
+
+                    <Link
+                      to="/wishlist"
+                      className={`relative ${textColor} hover:text-[#C4922A] transition-colors p-1.5 flex`}
+                      aria-label="Wishlist"
+                    >
+                      <Heart size={19} />
+                      {wishlistTotal > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-[#C4922A] text-white text-[8px] w-4.5 h-4.5 rounded-full flex items-center justify-center font-bold">
+                          {wishlistTotal}
+                        </span>
+                      )}
+                    </Link>
+
+                    {/* User Account / Sign In Dropdown (Desktop) */}
+                    <div className="relative">
+                      {isLoggedIn && user ? (
+                        <button
+                          type="button"
+                          onClick={() => setUserMenuOpen(!userMenuOpen)}
+                          className={`flex items-center gap-1.5 p-0.5 rounded-full border transition-all cursor-pointer ${userMenuOpen ? 'border-[#C4922A] ring-2 ring-[#C4922A]/20' : 'border-transparent hover:border-[#C4922A]'
+                            }`}
+                          title={`Account: ${user.displayName || user.email || 'Patron'}`}
+                        >
+                          {user.photoURL ? (
+                            <img
+                              src={user.photoURL}
+                              alt={user.displayName || 'Patron'}
+                              className="w-7 h-7 rounded-full object-cover border border-[#C4922A]"
+                            />
+                          ) : (
+                            <div className="w-7 h-7 rounded-full bg-[#0A0A0A] text-[#C4922A] flex items-center justify-center font-bold text-xs">
+                              {(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                        </button>
+                      ) : (
+                        <Link
+                          to="/account"
+                          className={`relative ${textColor} hover:text-[#C4922A] transition-colors p-1.5 flex items-center`}
+                          title="Sign In / Register with Google"
+                          aria-label="Account"
+                        >
+                          <User size={19} />
+                        </Link>
+                      )}
+
+                      {/* User Dropdown Menu */}
+                      {isLoggedIn && user && userMenuOpen && (
+                        <div
+                          className="absolute right-0 top-full mt-3 w-64 bg-white/95 backdrop-blur-md border border-[#E8E4DF] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.12)] rounded-xs py-3 animate-dropdown z-50 text-left"
+                          onMouseLeave={() => setUserMenuOpen(false)}
+                        >
+                          <div className="px-4 pb-3 border-b border-[#E8E4DF]">
+                            <p className="text-xs font-bold text-[#0A0A0A] truncate">{user.displayName || user.email?.split('@')[0] || 'Patron'}</p>
+                            <p className="text-[10px] text-[#7A7A7A] truncate font-mono mt-0.5">{user.email}</p>
+                            <span className="inline-flex items-center gap-1 mt-1 text-[9px] text-emerald-800 bg-emerald-50 px-1.5 py-0.2 rounded-2xs font-bold uppercase">
+                              <CheckCircle2 size={10} /> Google Verified
+                            </span>
+                          </div>
+
+                          <div className="py-1">
+                            <Link
+                              to="/account?tab=profile"
+                              onClick={() => setUserMenuOpen(false)}
+                              className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-[#4A4A4A] hover:text-[#C4922A] hover:bg-[#FAFAF8] transition-colors uppercase font-medium tracking-wider"
+                            >
+                              <User size={14} className="text-[#C4922A]" />
+                              <span>My Profile Details</span>
+                            </Link>
+
+                            <Link
+                              to="/account?tab=orders"
+                              onClick={() => setUserMenuOpen(false)}
+                              className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-[#4A4A4A] hover:text-[#C4922A] hover:bg-[#FAFAF8] transition-colors uppercase font-medium tracking-wider"
+                            >
+                              <ShoppingBag size={14} className="text-[#C4922A]" />
+                              <span>My Orders &amp; Records</span>
+                            </Link>
+
+                            <Link
+                              to="/account?tab=address"
+                              onClick={() => setUserMenuOpen(false)}
+                              className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-[#4A4A4A] hover:text-[#C4922A] hover:bg-[#FAFAF8] transition-colors uppercase font-medium tracking-wider"
+                            >
+                              <MapPin size={14} className="text-[#C4922A]" />
+                              <span>Delivery Addresses</span>
+                            </Link>
+
+                            <Link
+                              to="/account?tab=wishlist"
+                              onClick={() => setUserMenuOpen(false)}
+                              className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-[#4A4A4A] hover:text-[#C4922A] hover:bg-[#FAFAF8] transition-colors uppercase font-medium tracking-wider"
+                            >
+                              <Heart size={14} className="text-[#C4922A]" />
+                              <span>Saved Wishlist</span>
+                            </Link>
+
+                            <Link
+                              to="/order-tracking"
+                              onClick={() => setUserMenuOpen(false)}
+                              className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-[#4A4A4A] hover:text-[#C4922A] hover:bg-[#FAFAF8] transition-colors uppercase font-medium tracking-wider"
+                            >
+                              <Truck size={14} className="text-[#C4922A]" />
+                              <span>Live Order Tracking</span>
+                            </Link>
+                          </div>
+
+                          <div className="pt-2 border-t border-[#E8E4DF] px-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setUserMenuOpen(false);
+                                signOut();
+                              }}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-600 hover:bg-red-50 rounded-2xs transition-colors uppercase font-bold tracking-wider cursor-pointer"
+                            >
+                              <LogOut size={13} />
+                              <span>Sign Out</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Music Toggle Button */}
+                    <button
+                      onClick={toggleMusic}
+                      className={`relative flex items-center justify-center ${textColor} hover:text-[#C4922A] transition-colors p-1.5 cursor-pointer`}
+                      title={musicPlaying ? "Pause relaxing music" : "Play relaxing music"}
+                      aria-label="Relaxing Music"
+                    >
+                      {musicPlaying ? (
+                        <div className="soundwave-container text-[#C4922A] self-center">
+                          <span className="wave-bar" />
+                          <span className="wave-bar" />
+                          <span className="wave-bar" />
+                        </div>
+                      ) : (
+                        <Music size={19} />
+                      )}
+                    </button>
+
+                    <Link
+                      to="/cart"
+                      className={`relative ${textColor} hover:text-[#C4922A] transition-all p-1.5 ${pulseCart ? 'animate-bounce-pulse text-[#C4922A]' : ''}`}
+                      aria-label="Cart"
+                    >
+                      <ShoppingBag size={19} className={pulseCart ? 'stroke-[2.5px]' : ''} />
+                      {totalItems > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-[#C4922A] text-white text-[8px] w-4.5 h-4.5 rounded-full flex items-center justify-center font-bold shadow-sm">
+                          {totalItems}
+                        </span>
+                      )}
+                    </Link>
+                  </div>
                 </div>
               </>
             );
           })()}
 
-          {/* Right Side Icons */}
-          <div className="flex items-center gap-3.5 sm:gap-4 md:gap-5 ml-auto md:ml-0 shrink-0 z-20">
+          {/* Mobile Right Controls (< md) */}
+          <div className="flex md:hidden items-center gap-2 sm:gap-3 ml-auto shrink-0 z-20">
             <button
               onClick={() => setSearchOpen(true)}
               className={`${textColor} hover:text-[#C4922A] transition-colors p-1.5 cursor-pointer`}
               aria-label="Search"
             >
-              <Search size={19} />
+              <Search size={20} />
             </button>
 
-            {/* Order Tracking Quick Link */}
-            <Link
-              to="/order-tracking"
-              className={`relative ${textColor} hover:text-[#C4922A] transition-colors p-1.5 hidden md:flex items-center`}
-              title="Track Your Order"
-              aria-label="Track Order"
-            >
-              <Truck size={19} />
-            </Link>
-
-            <Link
-              to="/wishlist"
-              className={`relative ${textColor} hover:text-[#C4922A] transition-colors p-1.5 hidden md:flex`}
-              aria-label="Wishlist"
-            >
-              <Heart size={19} />
-              {wishlistTotal > 0 && (
-                <span className="absolute -top-1 -right-1 bg-[#C4922A] text-white text-[8px] w-4.5 h-4.5 rounded-full flex items-center justify-center font-bold">
-                  {wishlistTotal}
-                </span>
-              )}
-            </Link>
-
-            {/* User Account / Sign In Dropdown (Desktop) */}
-            <div className="relative hidden md:block">
-              {isLoggedIn && user ? (
-                <button
-                  type="button"
-                  onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className={`flex items-center gap-1.5 p-0.5 rounded-full border transition-all cursor-pointer ${userMenuOpen ? 'border-[#C4922A] ring-2 ring-[#C4922A]/20' : 'border-transparent hover:border-[#C4922A]'
-                    }`}
-                  title={`Account: ${user.displayName || user.email || 'Patron'}`}
-                >
-                  {user.photoURL ? (
-                    <img
-                      src={user.photoURL}
-                      alt={user.displayName || 'Patron'}
-                      className="w-7 h-7 rounded-full object-cover border border-[#C4922A]"
-                    />
-                  ) : (
-                    <div className="w-7 h-7 rounded-full bg-[#0A0A0A] text-[#C4922A] flex items-center justify-center font-bold text-xs">
-                      {(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                </button>
-              ) : (
-                <Link
-                  to="/account"
-                  className={`relative ${textColor} hover:text-[#C4922A] transition-colors p-1.5 flex items-center`}
-                  title="Sign In / Register with Google"
-                  aria-label="Account"
-                >
-                  <User size={19} />
-                </Link>
-              )}
-
-              {/* User Dropdown Menu */}
-              {isLoggedIn && user && userMenuOpen && (
-                <div
-                  className="absolute right-0 top-full mt-3 w-64 bg-white/95 backdrop-blur-md border border-[#E8E4DF] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.12)] rounded-xs py-3 animate-dropdown z-50 text-left"
-                  onMouseLeave={() => setUserMenuOpen(false)}
-                >
-                  <div className="px-4 pb-3 border-b border-[#E8E4DF]">
-                    <p className="text-xs font-bold text-[#0A0A0A] truncate">{user.displayName || user.email?.split('@')[0] || 'Patron'}</p>
-                    <p className="text-[10px] text-[#7A7A7A] truncate font-mono mt-0.5">{user.email}</p>
-                    <span className="inline-flex items-center gap-1 mt-1 text-[9px] text-emerald-800 bg-emerald-50 px-1.5 py-0.2 rounded-2xs font-bold uppercase">
-                      <CheckCircle2 size={10} /> Google Verified
-                    </span>
-                  </div>
-
-                  <div className="py-1">
-                    <Link
-                      to="/account?tab=profile"
-                      onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-[#4A4A4A] hover:text-[#C4922A] hover:bg-[#FAFAF8] transition-colors uppercase font-medium tracking-wider"
-                    >
-                      <User size={14} className="text-[#C4922A]" />
-                      <span>My Profile Details</span>
-                    </Link>
-
-                    <Link
-                      to="/account?tab=orders"
-                      onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-[#4A4A4A] hover:text-[#C4922A] hover:bg-[#FAFAF8] transition-colors uppercase font-medium tracking-wider"
-                    >
-                      <ShoppingBag size={14} className="text-[#C4922A]" />
-                      <span>My Orders &amp; Records</span>
-                    </Link>
-
-                    <Link
-                      to="/account?tab=address"
-                      onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-[#4A4A4A] hover:text-[#C4922A] hover:bg-[#FAFAF8] transition-colors uppercase font-medium tracking-wider"
-                    >
-                      <MapPin size={14} className="text-[#C4922A]" />
-                      <span>Delivery Addresses</span>
-                    </Link>
-
-                    <Link
-                      to="/account?tab=wishlist"
-                      onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-[#4A4A4A] hover:text-[#C4922A] hover:bg-[#FAFAF8] transition-colors uppercase font-medium tracking-wider"
-                    >
-                      <Heart size={14} className="text-[#C4922A]" />
-                      <span>Saved Wishlist</span>
-                    </Link>
-
-                    <Link
-                      to="/order-tracking"
-                      onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-[#4A4A4A] hover:text-[#C4922A] hover:bg-[#FAFAF8] transition-colors uppercase font-medium tracking-wider"
-                    >
-                      <Truck size={14} className="text-[#C4922A]" />
-                      <span>Live Order Tracking</span>
-                    </Link>
-                  </div>
-
-                  <div className="pt-2 border-t border-[#E8E4DF] px-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setUserMenuOpen(false);
-                        signOut();
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-600 hover:bg-red-50 rounded-2xs transition-colors uppercase font-bold tracking-wider cursor-pointer"
-                    >
-                      <LogOut size={13} />
-                      <span>Sign Out</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Music Toggle Button */}
+            {/* Music Toggle Button (Mobile) */}
             <button
               onClick={toggleMusic}
               className={`relative flex items-center justify-center ${textColor} hover:text-[#C4922A] transition-colors p-1.5 cursor-pointer`}
@@ -448,7 +493,7 @@ export default function Navbar() {
                   <span className="wave-bar" />
                 </div>
               ) : (
-                <Music size={19} />
+                <Music size={20} />
               )}
             </button>
 
@@ -457,15 +502,16 @@ export default function Navbar() {
               className={`relative ${textColor} hover:text-[#C4922A] transition-all p-1.5 ${pulseCart ? 'animate-bounce-pulse text-[#C4922A]' : ''}`}
               aria-label="Cart"
             >
-              <ShoppingBag size={19} className={pulseCart ? 'stroke-[2.5px]' : ''} />
+              <ShoppingBag size={20} className={pulseCart ? 'stroke-[2.5px]' : ''} />
               {totalItems > 0 && (
                 <span className="absolute -top-1 -right-1 bg-[#C4922A] text-white text-[8px] w-4.5 h-4.5 rounded-full flex items-center justify-center font-bold shadow-sm">
                   {totalItems}
                 </span>
               )}
             </Link>
+
             <button
-              className={`md:hidden ${textColor} hover:text-[#C4922A] transition-colors p-1.5 cursor-pointer`}
+              className={`${textColor} hover:text-[#C4922A] transition-colors p-1.5 cursor-pointer`}
               onClick={() => setMenuOpen(true)}
               aria-label="Menu"
             >
@@ -657,6 +703,21 @@ export default function Navbar() {
                 <MapPin size={15} className="text-[#C4922A]" />
                 <span>Saved Delivery Addresses</span>
               </Link>
+              <button
+                type="button"
+                onClick={toggleMusic}
+                className="flex items-center justify-between w-full text-xs font-semibold text-[#0A0A0A] hover:text-[#C4922A] py-1 uppercase tracking-wider cursor-pointer text-left"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Music size={15} className="text-[#C4922A]" />
+                  <span>Ambient Relaxing Music</span>
+                </div>
+                <span className={`text-[9px] px-2 py-0.5 rounded-2xs font-bold uppercase ${
+                  musicPlaying ? 'bg-[#C4922A]/15 text-[#C4922A] border border-[#C4922A]/30' : 'bg-black/5 text-neutral-500'
+                }`}>
+                  {musicPlaying ? 'Playing ♪' : 'Play Music'}
+                </span>
+              </button>
               {isLoggedIn && (
                 <button
                   type="button"

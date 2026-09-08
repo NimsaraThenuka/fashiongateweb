@@ -171,23 +171,23 @@ a, button {
 .animate-marquee {
   display: flex;
   width: max-content;
-  animation: marquee 28s linear infinite;
+  animation: marquee 36s linear infinite;
   will-change: transform;
 }
 @media (max-width: 768px) {
   .animate-marquee {
-    animation: marquee 14s linear infinite;
+    animation: marquee 32s linear infinite;
   }
 }
 .animate-product-marquee {
-  animation: marquee 45s linear infinite;
+  animation: marquee 75s linear infinite;
 }
 .animate-product-marquee:hover {
   animation-play-state: paused;
 }
 @media (max-width: 768px) {
   .animate-product-marquee {
-    animation: marquee 25s linear infinite;
+    animation: marquee 50s linear infinite;
   }
 }
 .animate-float { animation: float 3s ease-in-out infinite; }
