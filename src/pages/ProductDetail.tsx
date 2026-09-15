@@ -77,7 +77,7 @@ export default function ProductDetail() {
       `▪ *Color:* ${selectedColor || 'Default'}\n` +
       `▪ *Item Code:* FG-${product.id}\n\n` +
       `Please provide delivery details and confirm availability. Thank you!`;
-    window.open(`https://wa.me/94775439401?text=${encodeURIComponent(message)}`, '_blank');
+    window.open(`https://wa.me/94707739962?text=${encodeURIComponent(message)}`, '_blank');
   };
 
   const handleGoBack = () => {
