@@ -14,6 +14,7 @@ import {
 } from 'firebase/firestore';
 import { getAuth, Auth } from 'firebase/auth';
 import type { Product } from '../data/products';
+import type { GalleryItem } from '../data/gallery';
 
 export interface FirebaseConfig {
   apiKey: string;
@@ -211,6 +212,57 @@ export function cleanProductForFirestore(product: Product): Record<string, any> 
 
 // Firestore CRUD operations & Real-time Subscriptions
 
+let lastFirestoreError: string | null = null;
+export function getLastFirestoreError(): string | null {
+  return lastFirestoreError;
+}
+
+/**
+ * Diagnostic test for Firestore connection and security rules
+ */
+export async function testFirestoreConnection(): Promise<{
+  connected: boolean;
+  status: 'connected' | 'offline' | 'permission_denied';
+  error?: string;
+  itemCount?: number;
+}> {
+  const db = getFirestoreDB();
+  if (!db) {
+    return {
+      connected: false,
+      status: 'offline',
+      error: 'Firebase instance could not be initialized.',
+    };
+  }
+
+  try {
+    const colRef = collection(db, 'products');
+    const snapshot = await getDocs(colRef);
+    lastFirestoreError = null;
+    return {
+      connected: true,
+      status: 'connected',
+      itemCount: snapshot.size,
+    };
+  } catch (err: any) {
+    const msg = err?.message || String(err);
+    const code = err?.code || '';
+    const isPermission =
+      code === 'permission-denied' ||
+      msg.toLowerCase().includes('permission') ||
+      msg.toLowerCase().includes('insufficient permissions');
+
+    lastFirestoreError = msg;
+    return {
+      connected: false,
+      status: isPermission ? 'permission_denied' : 'offline',
+      error: isPermission
+        ? 'Firebase Firestore Security Rules are blocking access (Permission Denied). Please update rules in Firebase Console.'
+        : msg,
+    };
+  }
+}
+
 /**
  * Real-time listener for Firestore "products" collection.
  * Whenever any item is added, updated, or deleted anywhere,
@@ -229,6 +281,7 @@ export function subscribeToFirestoreProducts(
       colRef,
       snapshot => {
         if (snapshot.empty) {
+          onUpdate([]);
           return;
         }
         const items: Product[] = [];
@@ -244,12 +297,15 @@ export function subscribeToFirestoreProducts(
       },
       err => {
         console.warn('Firestore onSnapshot error:', err);
+        lastFirestoreError = err?.message || String(err);
         if (onError) onError(err);
       }
     );
     return unsubscribe;
-  } catch (err) {
+  } catch (err: any) {
     console.warn('Could not attach Firestore onSnapshot listener:', err);
+    lastFirestoreError = err?.message || String(err);
+    if (onError) onError(err);
     return null;
   }
 }
@@ -266,7 +322,7 @@ export async function fetchProductsFromFirestore(): Promise<Product[] | null> {
     const snapshot = await getDocs(colRef);
 
     if (snapshot.empty) {
-      return null;
+      return [];
     }
 
     const items: Product[] = [];
@@ -280,9 +336,18 @@ export async function fetchProductsFromFirestore(): Promise<Product[] | null> {
 
     // Sort by ID
     items.sort((a, b) => a.id - b.id);
+    lastFirestoreError = null;
     return items;
-  } catch (err) {
+  } catch (err: any) {
+    lastFirestoreError = err?.message || String(err);
     console.warn('Could not fetch from Firestore (will use local cache):', err);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('fashiongate_firestore_error', {
+          detail: { error: lastFirestoreError, code: err?.code },
+        })
+      );
+    }
     return null;
   }
 }
@@ -299,9 +364,18 @@ export async function saveProductToFirestore(product: Product): Promise<boolean>
     const cleaned = cleanProductForFirestore(product);
     await setDoc(docRef, cleaned, { merge: true });
     removeDeletedProductId(product.id);
+    lastFirestoreError = null;
     return true;
-  } catch (err) {
+  } catch (err: any) {
+    lastFirestoreError = err?.message || String(err);
     console.error(`Failed to save product #${product.id} to Firestore:`, err);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('fashiongate_firestore_error', {
+          detail: { error: lastFirestoreError, code: err?.code },
+        })
+      );
+    }
     return false;
   }
 }
@@ -317,31 +391,207 @@ export async function deleteProductFromFirestore(id: number): Promise<boolean> {
     const docRef = doc(db, 'products', String(id));
     await deleteDoc(docRef);
     addDeletedProductId(id);
+    lastFirestoreError = null;
     return true;
-  } catch (err) {
+  } catch (err: any) {
+    lastFirestoreError = err?.message || String(err);
     console.error(`Failed to delete product #${id} from Firestore:`, err);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('fashiongate_firestore_error', {
+          detail: { error: lastFirestoreError, code: err?.code },
+        })
+      );
+    }
     return false;
   }
 }
 
 /**
- * Batch upload / sync all products to Firestore at once
+ * Batch upload / sync all products to Firestore at once with chunking
  */
 export async function batchUploadAllProductsToFirestore(products: Product[]): Promise<boolean> {
   const db = getFirestoreDB();
   if (!db) return false;
 
   try {
+    const chunkSize = 300;
+    for (let i = 0; i < products.length; i += chunkSize) {
+      const chunk = products.slice(i, i + chunkSize);
+      const batch = writeBatch(db);
+      for (const p of chunk) {
+        const docRef = doc(db, 'products', String(p.id));
+        const cleaned = cleanProductForFirestore(p);
+        batch.set(docRef, cleaned, { merge: true });
+      }
+      await batch.commit();
+    }
+    lastFirestoreError = null;
+    return true;
+  } catch (err: any) {
+    lastFirestoreError = err?.message || String(err);
+    console.error('Failed to batch upload products to Firestore:', err);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('fashiongate_firestore_error', {
+          detail: { error: lastFirestoreError, code: err?.code },
+        })
+      );
+    }
+    return false;
+  }
+}
+
+// =========================================================================
+// GALLERY FIRESTORE INTEGRATION
+// =========================================================================
+
+/**
+ * Sanitizes and cleans a GalleryItem object for Firestore.
+ */
+export function cleanGalleryItemForFirestore(item: GalleryItem): Record<string, any> {
+  const cleaned: Record<string, any> = JSON.parse(JSON.stringify(item));
+  cleaned.id = Number(cleaned.id || item.id);
+  cleaned.tag = String(cleaned.tag || 'campaigns').trim();
+  cleaned.title = String(cleaned.title || '').trim();
+  cleaned.subtitle = String(cleaned.subtitle || '').trim();
+  cleaned.image = String(cleaned.image || '').trim();
+  cleaned.aspect = cleaned.aspect || 'aspect-[3/4]';
+  if (cleaned.description) {
+    cleaned.description = String(cleaned.description).trim();
+  } else {
+    delete cleaned.description;
+  }
+  if (cleaned.createdAt) {
+    cleaned.createdAt = String(cleaned.createdAt);
+  }
+  return cleaned;
+}
+
+/**
+ * Real-time listener for Firestore "gallery" collection.
+ */
+export function subscribeToFirestoreGallery(
+  onUpdate: (items: GalleryItem[]) => void,
+  onError?: (error: any) => void
+): Unsubscribe | null {
+  const db = getFirestoreDB();
+  if (!db) return null;
+
+  try {
+    const colRef = collection(db, 'gallery');
+    const unsubscribe = onSnapshot(
+      colRef,
+      snapshot => {
+        if (snapshot.empty) {
+          onUpdate([]);
+          return;
+        }
+        const items: GalleryItem[] = [];
+        snapshot.forEach(docSnap => {
+          const data = docSnap.data() as GalleryItem;
+          items.push({
+            ...data,
+            id: Number(data.id || docSnap.id),
+          });
+        });
+        items.sort((a, b) => b.id - a.id);
+        onUpdate(items);
+      },
+      err => {
+        console.warn('Firestore gallery onSnapshot notice:', err);
+        if (onError) onError(err);
+      }
+    );
+    return unsubscribe;
+  } catch (err: any) {
+    console.warn('Could not attach Firestore gallery onSnapshot listener:', err);
+    if (onError) onError(err);
+    return null;
+  }
+}
+
+/**
+ * Fetch all gallery items from Firestore "gallery" collection
+ */
+export async function fetchGalleryFromFirestore(): Promise<GalleryItem[] | null> {
+  const db = getFirestoreDB();
+  if (!db) return null;
+
+  try {
+    const colRef = collection(db, 'gallery');
+    const snapshot = await getDocs(colRef);
+    if (snapshot.empty) return null;
+
+    const items: GalleryItem[] = [];
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data() as GalleryItem;
+      items.push({
+        ...data,
+        id: Number(data.id || docSnap.id),
+      });
+    });
+    items.sort((a, b) => b.id - a.id);
+    return items;
+  } catch (err) {
+    console.warn('Could not fetch gallery from Firestore:', err);
+    return null;
+  }
+}
+
+/**
+ * Save or update a single gallery item in Firestore
+ */
+export async function saveGalleryItemToFirestore(item: GalleryItem): Promise<boolean> {
+  const db = getFirestoreDB();
+  if (!db) return false;
+
+  try {
+    const docRef = doc(db, 'gallery', String(item.id));
+    const cleaned = cleanGalleryItemForFirestore(item);
+    await setDoc(docRef, cleaned, { merge: true });
+    return true;
+  } catch (err) {
+    console.error(`Failed to save gallery item #${item.id} to Firestore:`, err);
+    return false;
+  }
+}
+
+/**
+ * Delete a gallery item from Firestore
+ */
+export async function deleteGalleryItemFromFirestore(id: number): Promise<boolean> {
+  const db = getFirestoreDB();
+  if (!db) return false;
+
+  try {
+    const docRef = doc(db, 'gallery', String(id));
+    await deleteDoc(docRef);
+    return true;
+  } catch (err) {
+    console.error(`Failed to delete gallery item #${id} from Firestore:`, err);
+    return false;
+  }
+}
+
+/**
+ * Batch upload / sync all gallery items to Firestore at once
+ */
+export async function batchUploadAllGalleryToFirestore(items: GalleryItem[]): Promise<boolean> {
+  const db = getFirestoreDB();
+  if (!db) return false;
+
+  try {
     const batch = writeBatch(db);
-    for (const p of products) {
-      const docRef = doc(db, 'products', String(p.id));
-      const cleaned = cleanProductForFirestore(p);
+    for (const item of items) {
+      const docRef = doc(db, 'gallery', String(item.id));
+      const cleaned = cleanGalleryItemForFirestore(item);
       batch.set(docRef, cleaned, { merge: true });
     }
     await batch.commit();
     return true;
   } catch (err) {
-    console.error('Failed to batch upload products to Firestore:', err);
+    console.error('Failed to batch upload gallery items to Firestore:', err);
     return false;
   }
 }

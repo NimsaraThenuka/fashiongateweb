@@ -1,5 +1,12 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { GalleryItem, DEFAULT_GALLERY_ITEMS } from '../data/gallery';
+import {
+  fetchGalleryFromFirestore,
+  saveGalleryItemToFirestore,
+  deleteGalleryItemFromFirestore,
+  batchUploadAllGalleryToFirestore,
+  subscribeToFirestoreGallery,
+} from '../services/firebase';
 
 interface GalleryContextType {
   galleryItems: GalleryItem[];
@@ -7,6 +14,8 @@ interface GalleryContextType {
   updateGalleryItem: (id: number, itemData: Partial<GalleryItem>) => void;
   deleteGalleryItem: (id: number) => void;
   resetGalleryToDefaults: () => void;
+  syncAllGalleryToCloud: () => Promise<boolean>;
+  isGallerySyncing: boolean;
 }
 
 const STORAGE_KEY = 'fashiongate_gallery_items_v1';
@@ -29,6 +38,8 @@ export const GalleryProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return DEFAULT_GALLERY_ITEMS;
   });
 
+  const [isGallerySyncing, setIsGallerySyncing] = useState<boolean>(false);
+
   // Save to localStorage whenever galleryItems changes
   useEffect(() => {
     try {
@@ -38,13 +49,30 @@ export const GalleryProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [galleryItems]);
 
-  // Sync across tabs
+  // Firestore Sync & Cross-Device Live Listeners
   useEffect(() => {
+    let isMounted = true;
+
+    // 1. Initial fetch from Firestore
+    fetchGalleryFromFirestore().then(cloudItems => {
+      if (isMounted && cloudItems && cloudItems.length > 0) {
+        setGalleryItems(cloudItems);
+      }
+    });
+
+    // 2. Real-time subscription across devices
+    const unsubscribe = subscribeToFirestoreGallery(cloudItems => {
+      if (isMounted && cloudItems && cloudItems.length > 0) {
+        setGalleryItems(cloudItems);
+      }
+    });
+
+    // 3. Cross-tab storage listener
     const handleStorage = (e: StorageEvent) => {
       if (e.key === STORAGE_KEY && e.newValue) {
         try {
           const updated = JSON.parse(e.newValue);
-          if (Array.isArray(updated)) {
+          if (Array.isArray(updated) && isMounted) {
             setGalleryItems(updated);
           }
         } catch (err) {
@@ -53,7 +81,12 @@ export const GalleryProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
     };
     window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
+
+    return () => {
+      isMounted = false;
+      if (unsubscribe) unsubscribe();
+      window.removeEventListener('storage', handleStorage);
+    };
   }, []);
 
   const addGalleryItem = (itemData: Omit<GalleryItem, 'id'>): GalleryItem => {
@@ -68,22 +101,59 @@ export const GalleryProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
 
     setGalleryItems(prev => [newItem, ...prev]);
+
+    // Push to Firestore in background
+    saveGalleryItemToFirestore(newItem).catch(err =>
+      console.warn('Firestore gallery save notice:', err)
+    );
+
     return newItem;
   };
 
   const updateGalleryItem = (id: number, itemData: Partial<GalleryItem>) => {
+    let updatedItem: GalleryItem | null = null;
     setGalleryItems(prev =>
-      prev.map(item => (item.id === id ? { ...item, ...itemData } : item))
+      prev.map(item => {
+        if (item.id === id) {
+          updatedItem = { ...item, ...itemData };
+          return updatedItem;
+        }
+        return item;
+      })
     );
+
+    if (updatedItem) {
+      saveGalleryItemToFirestore(updatedItem).catch(err =>
+        console.warn('Firestore gallery update notice:', err)
+      );
+    }
   };
 
   const deleteGalleryItem = (id: number) => {
     setGalleryItems(prev => prev.filter(item => item.id !== id));
+    deleteGalleryItemFromFirestore(id).catch(err =>
+      console.warn('Firestore gallery delete notice:', err)
+    );
   };
 
   const resetGalleryToDefaults = () => {
     setGalleryItems(DEFAULT_GALLERY_ITEMS);
+    batchUploadAllGalleryToFirestore(DEFAULT_GALLERY_ITEMS).catch(err =>
+      console.warn('Firestore gallery batch reset notice:', err)
+    );
   };
+
+  const syncAllGalleryToCloud = useCallback(async (): Promise<boolean> => {
+    setIsGallerySyncing(true);
+    try {
+      const ok = await batchUploadAllGalleryToFirestore(galleryItems);
+      setIsGallerySyncing(false);
+      return ok;
+    } catch {
+      setIsGallerySyncing(false);
+      return false;
+    }
+  }, [galleryItems]);
 
   return (
     <GalleryContext.Provider
@@ -93,6 +163,8 @@ export const GalleryProvider: React.FC<{ children: React.ReactNode }> = ({ child
         updateGalleryItem,
         deleteGalleryItem,
         resetGalleryToDefaults,
+        syncAllGalleryToCloud,
+        isGallerySyncing,
       }}
     >
       {children}

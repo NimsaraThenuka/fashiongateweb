@@ -12,7 +12,11 @@ import {
   addDeletedProductId,
   removeDeletedProductId,
   clearDeletedProductIds,
+  testFirestoreConnection,
+  getLastFirestoreError,
 } from '../services/firebase';
+
+export type CloudStatus = 'connected' | 'offline' | 'permission_denied' | 'syncing';
 
 interface ProductContextType {
   products: Product[];
@@ -24,9 +28,11 @@ interface ProductContextType {
   reduceStock: (items: { id: number; quantity: number }[]) => void;
   resetToDefaults: () => void;
   getProductById: (id: number) => Product | undefined;
-  syncAllToCloud: () => Promise<boolean>;
+  syncAllToCloud: () => Promise<{ success: boolean; error?: string; count?: number }>;
   isSyncing: boolean;
-  cloudSyncStatus: 'connected' | 'offline' | 'syncing';
+  cloudSyncStatus: CloudStatus;
+  cloudError: string | null;
+  refreshCloudSync: () => Promise<void>;
 }
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
@@ -90,65 +96,97 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
   });
 
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
-  const [cloudSyncStatus, setCloudSyncStatus] = useState<'connected' | 'offline' | 'syncing'>('connected');
+  const [cloudSyncStatus, setCloudSyncStatus] = useState<CloudStatus>('syncing');
+  const [cloudError, setCloudError] = useState<string | null>(null);
 
-  // Real-time Firestore Subscription & Cross-tab Live Synchronization
-  useEffect(() => {
-    let isMounted = true;
+  const initFirestore = useCallback(async (isMountedRef: { current: boolean }) => {
+    try {
+      const cloudProducts = await fetchProductsFromFirestore();
+      const currentLocal = getLocalStoredProducts() || [];
+      const baseLocal = currentLocal.length > 0 ? currentLocal : initialProducts;
 
-    // 1. Initial fetch from Firestore
-    async function initFirestore() {
-      try {
-        const cloudProducts = await fetchProductsFromFirestore();
-        const currentLocal = getLocalStoredProducts() || [];
-        const baseLocal = currentLocal.length > 0 ? currentLocal : initialProducts;
-
-        if (cloudProducts && cloudProducts.length > 0) {
+      if (cloudProducts !== null) {
+        if (cloudProducts.length > 0) {
           const merged = mergeCloudAndLocalProducts(cloudProducts, baseLocal);
-          if (isMounted) {
+          if (isMountedRef.current) {
             setProducts(merged);
             saveLocalStoredProducts(merged);
             setCloudSyncStatus('connected');
+            setCloudError(null);
           }
         } else {
-          // Cloud empty or offline: use local products, seed cloud
+          // Cloud empty: seed cloud with current products
           const fallback = normalizeProductList(baseLocal);
-          if (isMounted) {
+          if (isMountedRef.current) {
             setProducts(fallback);
             saveLocalStoredProducts(fallback);
           }
-          await batchUploadAllProductsToFirestore(fallback);
-          if (isMounted) setCloudSyncStatus('connected');
+          const seeded = await batchUploadAllProductsToFirestore(fallback);
+          if (isMountedRef.current) {
+            setCloudSyncStatus(seeded ? 'connected' : 'permission_denied');
+            if (!seeded) {
+              setCloudError('Firestore rules rejected writing default products (Permission Denied).');
+            }
+          }
         }
-      } catch (err) {
-        console.warn('Firestore initial load notice:', err);
+      } else {
+        // fetchProductsFromFirestore returned null: permission denied or offline
+        const fallback = normalizeProductList(baseLocal);
+        if (isMountedRef.current) {
+          setProducts(fallback);
+          saveLocalStoredProducts(fallback);
+          const lastErr = getLastFirestoreError() || '';
+          const isPerm = lastErr.toLowerCase().includes('permission') || lastErr.toLowerCase().includes('insufficient permissions');
+          setCloudSyncStatus(isPerm ? 'permission_denied' : 'offline');
+          setCloudError(lastErr || 'Firestore permissions expired. Please update rules in Firebase Console.');
+        }
+      }
+    } catch (err: any) {
+      console.warn('Firestore initial load notice:', err);
+      if (isMountedRef.current) {
+        setCloudSyncStatus('permission_denied');
+        setCloudError(err?.message || 'Firestore connection failed');
       }
     }
+  }, []);
 
-    initFirestore();
+  // Real-time Firestore Subscription & Cross-tab Live Synchronization
+  useEffect(() => {
+    const isMountedRef = { current: true };
 
-    // 2. Real-time Live Firestore onSnapshot Listener (Auto-updates UI in real-time across devices)
+    initFirestore(isMountedRef);
+
+    // Real-time Live Firestore onSnapshot Listener
     const unsubscribeFirestore = subscribeToFirestoreProducts(
       cloudProducts => {
-        if (isMounted && cloudProducts && cloudProducts.length > 0) {
-          const currentLocal = getLocalStoredProducts() || [];
-          const merged = mergeCloudAndLocalProducts(cloudProducts, currentLocal);
-          setProducts(merged);
-          saveLocalStoredProducts(merged);
+        if (isMountedRef.current && cloudProducts) {
+          if (cloudProducts.length > 0) {
+            const currentLocal = getLocalStoredProducts() || [];
+            const merged = mergeCloudAndLocalProducts(cloudProducts, currentLocal);
+            setProducts(merged);
+            saveLocalStoredProducts(merged);
+          }
           setCloudSyncStatus('connected');
+          setCloudError(null);
         }
       },
       err => {
         console.warn('Real-time sync listener notice:', err);
+        const msg = err?.message || String(err);
+        const isPerm = err?.code === 'permission-denied' || msg.toLowerCase().includes('permission');
+        if (isMountedRef.current) {
+          setCloudSyncStatus(isPerm ? 'permission_denied' : 'offline');
+          setCloudError(msg);
+        }
       }
     );
 
-    // 3. Cross-Tab Live Storage Event Listener (Instantly syncs across multiple tabs in same browser)
+    // Cross-Tab Live Storage Event Listener (Instantly syncs across multiple tabs in same browser)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'fashiongate_live_products' && e.newValue) {
         try {
           const parsed = JSON.parse(e.newValue);
-          if (Array.isArray(parsed) && parsed.length > 0 && isMounted) {
+          if (Array.isArray(parsed) && parsed.length > 0 && isMountedRef.current) {
             setProducts(normalizeProductList(parsed));
           }
         } catch {
@@ -158,22 +196,35 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
     window.addEventListener('storage', handleStorageChange);
 
-    // 4. Custom window event for same-tab instant broadcast
+    // Custom window event for same-tab instant broadcast
     const handleCustomSync = (e: Event) => {
       const customEvent = e as CustomEvent<Product[]>;
-      if (customEvent.detail && Array.isArray(customEvent.detail) && isMounted) {
+      if (customEvent.detail && Array.isArray(customEvent.detail) && isMountedRef.current) {
         setProducts(normalizeProductList(customEvent.detail));
       }
     };
     window.addEventListener('fashiongate_products_updated', handleCustomSync);
 
+    // Listen for Firestore error event dispatched by firebase.ts
+    const handleFirestoreError = (e: Event) => {
+      const customEvent = e as CustomEvent<{ error: string; code?: string }>;
+      const msg = customEvent.detail?.error || '';
+      const isPerm = customEvent.detail?.code === 'permission-denied' || msg.toLowerCase().includes('permission');
+      if (isMountedRef.current) {
+        setCloudSyncStatus(isPerm ? 'permission_denied' : 'offline');
+        setCloudError(msg);
+      }
+    };
+    window.addEventListener('fashiongate_firestore_error', handleFirestoreError);
+
     return () => {
-      isMounted = false;
+      isMountedRef.current = false;
       if (unsubscribeFirestore) unsubscribeFirestore();
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('fashiongate_products_updated', handleCustomSync);
+      window.removeEventListener('fashiongate_firestore_error', handleFirestoreError);
     };
-  }, []);
+  }, [initFirestore]);
 
   const broadcastProducts = (updatedProducts: Product[]) => {
     saveLocalStoredProducts(updatedProducts);
@@ -349,24 +400,46 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return products.find(p => p.id === id);
   };
 
-  const syncAllToCloud = useCallback(async (): Promise<boolean> => {
+  const syncAllToCloud = useCallback(async (): Promise<{ success: boolean; error?: string; count?: number }> => {
     setIsSyncing(true);
     setCloudSyncStatus('syncing');
     try {
       const success = await batchUploadAllProductsToFirestore(products);
       if (success) {
         setCloudSyncStatus('connected');
+        setCloudError(null);
+        setIsSyncing(false);
+        return { success: true, count: products.length };
       } else {
-        setCloudSyncStatus('offline');
+        const lastErr = getLastFirestoreError() || 'Permission denied by Firebase security rules.';
+        setCloudSyncStatus('permission_denied');
+        setCloudError(lastErr);
+        setIsSyncing(false);
+        return { success: false, error: lastErr };
       }
-      setIsSyncing(false);
-      return success;
-    } catch (err) {
+    } catch (err: any) {
       console.error('Manual Firestore sync error:', err);
-      setCloudSyncStatus('offline');
+      const msg = err?.message || 'Failed to sync to cloud';
+      setCloudSyncStatus('permission_denied');
+      setCloudError(msg);
       setIsSyncing(false);
-      return false;
+      return { success: false, error: msg };
     }
+  }, [products]);
+
+  const refreshCloudSync = useCallback(async () => {
+    setIsSyncing(true);
+    const testResult = await testFirestoreConnection();
+    if (testResult.connected) {
+      setCloudSyncStatus('connected');
+      setCloudError(null);
+      // Automatically push latest local products up to cloud so other devices receive them
+      await batchUploadAllProductsToFirestore(products);
+    } else {
+      setCloudSyncStatus(testResult.status);
+      setCloudError(testResult.error || 'Connection failed');
+    }
+    setIsSyncing(false);
   }, [products]);
 
   return (
@@ -384,6 +457,8 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
         syncAllToCloud,
         isSyncing,
         cloudSyncStatus,
+        cloudError,
+        refreshCloudSync,
       }}
     >
       {children}

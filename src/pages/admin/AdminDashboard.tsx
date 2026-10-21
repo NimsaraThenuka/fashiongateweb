@@ -48,6 +48,7 @@ import {
   getStoredFirebaseConfig,
   saveStoredFirebaseConfig,
   clearStoredFirebaseConfig,
+  testFirestoreConnection,
   FirebaseConfig
 } from '../../services/firebase';
 
@@ -64,6 +65,9 @@ export default function AdminDashboard() {
     resetToDefaults,
     syncAllToCloud,
     isSyncing,
+    cloudSyncStatus,
+    cloudError,
+    refreshCloudSync,
   } = useProducts();
 
   const { orders, updateOrderStatus, deleteOrder } = useOrders();
@@ -73,6 +77,8 @@ export default function AdminDashboard() {
     updateGalleryItem,
     deleteGalleryItem,
     resetGalleryToDefaults,
+    syncAllGalleryToCloud,
+    isGallerySyncing,
   } = useGallery();
   const { logout } = useAdminAuth();
   const navigate = useNavigate();
@@ -145,6 +151,63 @@ export default function AdminDashboard() {
   const [manualSyncDone, setManualSyncDone] = useState(false);
   const [stockToast, setStockToast] = useState<{ msg: string; inStock: boolean } | null>(null);
 
+  // Firestore Diagnostic & Cross-Device Cloud Sync State
+  const [testConnStatus, setTestConnStatus] = useState<{
+    loading: boolean;
+    result?: { connected: boolean; status: string; error?: string; itemCount?: number };
+  }>({ loading: false });
+  const [rulesCopied, setRulesCopied] = useState(false);
+  const [syncAllMsg, setSyncAllMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const handleCopyFirestoreRules = () => {
+    const rules = `rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}`;
+    navigator.clipboard.writeText(rules);
+    setRulesCopied(true);
+    setTimeout(() => setRulesCopied(false), 2500);
+  };
+
+  const handleTestAndSyncCloud = async () => {
+    setTestConnStatus({ loading: true });
+    setSyncAllMsg(null);
+    const res = await testFirestoreConnection();
+    setTestConnStatus({ loading: false, result: res });
+
+    if (res.connected) {
+      // Cloud is accessible! Push products + gallery
+      const prodResult = await syncAllToCloud();
+      const galleryOk = await syncAllGalleryToCloud();
+
+      if (prodResult.success) {
+        setSyncAllMsg({
+          type: 'success',
+          text: `Success! Pushed ${products.length} products and ${galleryItems.length} gallery items to Firebase. All devices and phones will now see your updates in real-time!`,
+        });
+        setManualSyncDone(true);
+        setTimeout(() => setManualSyncDone(false), 3000);
+        await refreshCloudSync();
+      } else {
+        setSyncAllMsg({
+          type: 'error',
+          text: `Connected to Firestore, but upload failed: ${prodResult.error || 'Unknown error'}`,
+        });
+      }
+    } else {
+      setSyncAllMsg({
+        type: 'error',
+        text: res.status === 'permission_denied'
+          ? 'Firestore rejected the request (Permission Denied). Please ensure you copied and pasted the rules in Firebase Console and clicked "Publish".'
+          : (res.error || 'Connection failed. Please check internet and Firebase config.'),
+      });
+    }
+  };
+
   const handleCopy = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     setCopiedText(label);
@@ -171,10 +234,22 @@ export default function AdminDashboard() {
   };
 
   const handleManualSync = async () => {
-    const success = await syncAllToCloud();
-    if (success) {
+    setSyncAllMsg(null);
+    const prodResult = await syncAllToCloud();
+    const galleryOk = await syncAllGalleryToCloud();
+
+    if (prodResult.success) {
       setManualSyncDone(true);
-      setTimeout(() => setManualSyncDone(false), 2500);
+      setSyncAllMsg({
+        type: 'success',
+        text: `Uploaded all ${products.length} catalog items and ${galleryItems.length} gallery items to Firebase!`,
+      });
+      setTimeout(() => setManualSyncDone(false), 3000);
+    } else {
+      setSyncAllMsg({
+        type: 'error',
+        text: prodResult.error || 'Failed to upload to cloud. Check Firebase security rules.',
+      });
     }
   };
 
@@ -528,15 +603,44 @@ export default function AdminDashboard() {
               <span className="whitespace-nowrap">Cloudinary Tool</span>
             </button>
 
-            {/* Firebase Config */}
-            <button
-              onClick={() => setFirebaseModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 h-9 text-[11px] uppercase tracking-wider text-white/70 hover:text-white border border-white/15 hover:border-[#C4922A] bg-black/40 hover:bg-white/5 rounded-xs transition-colors cursor-pointer whitespace-nowrap shrink-0"
-              title="Firebase Cloud Config & Sync"
-            >
-              <Database size={13} className="shrink-0 text-white/60" />
-              <span className="whitespace-nowrap">Firebase Config</span>
-            </button>
+            {/* Firebase Cloud Status & Config */}
+            {cloudSyncStatus === 'connected' ? (
+              <button
+                onClick={() => setFirebaseModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 h-9 text-[11px] uppercase tracking-wider text-emerald-300 bg-emerald-950/60 border border-emerald-500/50 hover:bg-emerald-900/50 rounded-xs transition-all cursor-pointer whitespace-nowrap shrink-0 shadow-sm"
+                title="Firebase Cloud Synced across all devices. Click to manage."
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="whitespace-nowrap font-medium">Cloud Synced</span>
+              </button>
+            ) : cloudSyncStatus === 'permission_denied' ? (
+              <button
+                onClick={() => setFirebaseModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 h-9 text-[11px] uppercase tracking-wider text-amber-200 bg-amber-950/90 border border-amber-500 hover:bg-amber-900/70 rounded-xs transition-all cursor-pointer whitespace-nowrap shrink-0 shadow-md animate-pulse"
+                title="Firebase Rules Expired! Click to fix in 1 minute."
+              >
+                <AlertTriangle size={13} className="shrink-0 text-amber-400" />
+                <span className="whitespace-nowrap font-bold">Cloud Offline (Fix)</span>
+              </button>
+            ) : cloudSyncStatus === 'syncing' ? (
+              <button
+                onClick={() => setFirebaseModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 h-9 text-[11px] uppercase tracking-wider text-blue-300 bg-blue-950/60 border border-blue-500/40 rounded-xs transition-all cursor-pointer whitespace-nowrap shrink-0"
+                title="Syncing catalog to cloud..."
+              >
+                <RefreshCw size={13} className="animate-spin text-blue-400 shrink-0" />
+                <span className="whitespace-nowrap">Syncing...</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => setFirebaseModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 h-9 text-[11px] uppercase tracking-wider text-white/70 hover:text-white border border-white/15 hover:border-[#C4922A] bg-black/40 hover:bg-white/5 rounded-xs transition-colors cursor-pointer whitespace-nowrap shrink-0"
+                title="Firebase Cloud Config & Sync"
+              >
+                <Database size={13} className="shrink-0 text-white/60" />
+                <span className="whitespace-nowrap">Cloud Config</span>
+              </button>
+            )}
 
             {/* Tab-specific primary action button */}
             {mainSection === 'products' ? (
@@ -581,6 +685,37 @@ export default function AdminDashboard() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 md:px-8 py-8 space-y-8">
+        {/* High-Visibility Banner when Cloud Rules are Expired */}
+        {cloudSyncStatus === 'permission_denied' && (
+          <div className="bg-gradient-to-r from-amber-950/90 via-[#1c1408] to-amber-950/90 border border-amber-500/70 rounded-xs p-4 sm:p-5 shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-scale-in">
+            <div className="flex items-start gap-3.5">
+              <div className="p-2.5 bg-amber-500/20 border border-amber-500/50 rounded-xs text-amber-400 shrink-0 mt-0.5">
+                <AlertTriangle size={22} />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-sm font-bold text-amber-200 uppercase tracking-wide flex items-center gap-2">
+                  <span>Firebase Cloud Sync Expired (Updates Only Saved on This PC)</span>
+                  <span className="text-[10px] bg-red-500/20 text-red-300 border border-red-500/40 px-2 py-0.5 rounded-xs font-mono font-normal">
+                    PERMISSION_DENIED
+                  </span>
+                </h4>
+                <p className="text-xs text-amber-100/80 leading-relaxed max-w-3xl">
+                  ඔබ dashboard එකෙන් add/update කරන items මේ device එකේ පමණක් පෙනෙන්නේ Firebase Security Rules expire වී ඇති බැවිනි. අනිත් phones / devices වලට updates පෙනීමට Firebase Rules විනාඩියකින් update කර <strong>"Test &amp; Push to Cloud"</strong> ඔබන්න.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0 w-full md:w-auto">
+              <button
+                type="button"
+                onClick={() => setFirebaseModalOpen(true)}
+                className="btn-gold py-2.5 px-5 text-xs uppercase tracking-wider font-bold whitespace-nowrap w-full md:w-auto cursor-pointer shadow-lg flex items-center justify-center gap-2"
+              >
+                <Database size={14} />
+                <span>Fix Cloud Sync (1 Min)</span>
+              </button>
+            </div>
+          </div>
+        )}
         {/* =========================================================================
             SECTION 1: PRODUCTS CATALOG VIEW
             ========================================================================= */}
@@ -2413,99 +2548,220 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Firebase Database Sync Modal */}
+      {/* Firebase Database Sync & Security Rules Diagnostic Modal */}
       {firebaseModalOpen && (
-        <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-scale-in">
-          <div className="bg-[#121212] border border-white/20 rounded-md p-6 max-w-md w-full shadow-2xl space-y-5">
+        <div className="fixed inset-0 z-[130] flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md animate-scale-in overflow-y-auto">
+          <div className="bg-[#121212] border border-[#C4922A]/40 rounded-md p-5 sm:p-6 max-w-xl w-full shadow-2xl space-y-5 my-auto max-h-[92vh] overflow-y-auto">
+            {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <div className="flex items-center gap-2 text-[#C4922A]">
-                <Database size={18} />
-                <h3 className="text-lg font-bold text-white">Firebase Database Sync</h3>
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-[#C4922A]/20 border border-[#C4922A]/40 rounded-xs text-[#C4922A]">
+                  <Database size={18} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white tracking-wide">Firebase Cloud Sync &amp; Rules</h3>
+                  <p className="text-[10px] text-white/50">Cross-Device Real-Time Database Synchronization</p>
+                </div>
               </div>
-              <button onClick={() => setFirebaseModalOpen(false)} className="text-white/40 hover:text-white cursor-pointer">
+              <button
+                type="button"
+                onClick={() => setFirebaseModalOpen(false)}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 cursor-pointer transition-colors"
+              >
                 ✕
               </button>
             </div>
 
-            <div className="bg-white/5 border border-white/10 p-3.5 rounded-xs space-y-2.5">
+            {/* Connection Status Box */}
+            <div className="p-3.5 rounded-xs border space-y-2 bg-black/40 border-white/10">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-white/80 font-semibold">Active Firestore Database:</span>
-                <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/70 border border-emerald-500/40 px-2 py-0.5 rounded-xs flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> fasion-gate
-                </span>
-              </div>
-              <p className="text-[11px] text-white/50 leading-relaxed">
-                Click below to upload/sync all <strong>{products.length}</strong> catalog items directly into Google Firebase Firestore cloud.
-              </p>
-              <button
-                type="button"
-                onClick={handleManualSync}
-                disabled={isSyncing}
-                className="w-full btn-gold py-2.5 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-md"
-              >
-                {isSyncing ? (
-                  <><RefreshCw size={14} className="animate-spin text-black" /> Uploading to Firestore Cloud...</>
-                ) : manualSyncDone ? (
-                  <><Check size={14} /> Cloud Sync Complete!</>
+                <span className="text-xs text-white/80 font-semibold">Live Database Status:</span>
+                {cloudSyncStatus === 'connected' ? (
+                  <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/80 border border-emerald-500/50 px-2.5 py-0.5 rounded-xs flex items-center gap-1.5 font-bold">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Connected &amp; Synced
+                  </span>
+                ) : cloudSyncStatus === 'permission_denied' ? (
+                  <span className="text-[11px] font-mono text-amber-300 bg-amber-950/80 border border-amber-500/60 px-2.5 py-0.5 rounded-xs flex items-center gap-1.5 font-bold animate-pulse">
+                    <AlertTriangle size={12} className="text-amber-400" /> Rules Expired / Permission Denied
+                  </span>
+                ) : cloudSyncStatus === 'syncing' ? (
+                  <span className="text-[11px] font-mono text-blue-300 bg-blue-950/80 border border-blue-500/50 px-2.5 py-0.5 rounded-xs flex items-center gap-1.5 font-bold">
+                    <RefreshCw size={12} className="animate-spin text-blue-400" /> Syncing...
+                  </span>
                 ) : (
-                  <><Database size={14} /> Push All {products.length} Products to Cloud Now</>
+                  <span className="text-[11px] font-mono text-red-400 bg-red-950/80 border border-red-500/50 px-2.5 py-0.5 rounded-xs flex items-center gap-1.5 font-bold">
+                    Offline
+                  </span>
                 )}
-              </button>
+              </div>
+              <div className="text-[11px] text-white/60 flex items-center justify-between pt-1 border-t border-white/5">
+                <span>Firebase Project: <strong className="text-white font-mono">{fbConfig.projectId || 'fasion-gate'}</strong></span>
+                <span>Local Items: <strong className="text-[#C4922A]">{products.length} Products</strong>, <strong className="text-[#C4922A]">{galleryItems.length} Gallery</strong></span>
+              </div>
             </div>
 
-            <form onSubmit={handleSaveFirebase} className="space-y-3 pt-2 border-t border-white/10">
-              <div>
-                <label className="block text-[10px] tracking-wider uppercase text-white/60 mb-1">Firebase Project ID</label>
-                <input
-                  type="text"
-                  value={fbConfig.projectId}
-                  onChange={e => setFbConfig(c => ({ ...c, projectId: e.target.value }))}
-                  placeholder="fasion-gate"
-                  className="w-full bg-[#181818] border border-white/15 px-3 py-2 text-xs text-white outline-none focus:border-[#C4922A] rounded-xs"
-                />
+            {/* Quick 1-Minute Fix Guide */}
+            <div className="bg-[#181818] border border-amber-500/40 p-4 rounded-xs space-y-3.5">
+              <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase tracking-wider">
+                <AlertCircle size={15} />
+                <span>අනිත් Devices වල පෙනීමට 1-Minute Fix (Security Rules)</span>
+              </div>
+              <p className="text-xs text-white/80 leading-relaxed">
+                ඔබ මේ dashboard එකෙන් update කරන දේවල් වෙනත් phones / laptops වල නොපෙනෙන්නේ Firebase ආරම්භක දින 30ක Test Mode Rules expire වී ඇති බැවිනි. පහත පියවර 3 අනුගමනය කරන්න:
+              </p>
+
+              {/* Step 1 */}
+              <div className="flex items-start gap-2.5 text-xs text-white/90">
+                <span className="w-5 h-5 rounded-full bg-[#C4922A] text-black font-bold flex items-center justify-center shrink-0 text-[10px]">1</span>
+                <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span>Firebase Console Rules tab එක විවෘත කරන්න:</span>
+                  <a
+                    href="https://console.firebase.google.com/project/fasion-gate/firestore/rules"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-[#E8B84B] hover:underline bg-[#C4922A]/15 border border-[#C4922A]/40 px-2.5 py-1 rounded-xs shrink-0"
+                  >
+                    Open Firebase Rules ↗
+                  </a>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-[10px] tracking-wider uppercase text-white/60 mb-1">Firebase API Key</label>
-                <input
-                  type="text"
-                  value={fbConfig.apiKey}
-                  onChange={e => setFbConfig(c => ({ ...c, apiKey: e.target.value }))}
-                  placeholder="AIzaSy..."
-                  className="w-full bg-[#181818] border border-white/15 px-3 py-2 text-xs text-white outline-none focus:border-[#C4922A] rounded-xs font-mono"
-                />
+              {/* Step 2 */}
+              <div className="space-y-1.5">
+                <div className="flex items-start gap-2.5 text-xs text-white/90">
+                  <span className="w-5 h-5 rounded-full bg-[#C4922A] text-black font-bold flex items-center justify-center shrink-0 text-[10px]">2</span>
+                  <span>පහත Security Rules code එක copy කර Firebase Console එකේ paste කර <strong>Publish</strong> ඔබන්න:</span>
+                </div>
+                <div className="relative bg-black/60 border border-white/15 rounded-xs p-3 font-mono text-[11px] text-emerald-300">
+                  <pre className="overflow-x-auto whitespace-pre">
+{`rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}`}
+                  </pre>
+                  <button
+                    type="button"
+                    onClick={handleCopyFirestoreRules}
+                    className="absolute top-2 right-2 btn-gold py-1 px-2.5 text-[10px] font-bold flex items-center gap-1 cursor-pointer shadow-sm"
+                  >
+                    {rulesCopied ? <><Check size={11} /> Copied!</> : <><Copy size={11} /> Copy Rules</>}
+                  </button>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-[10px] tracking-wider uppercase text-white/60 mb-1">Storage Bucket</label>
-                <input
-                  type="text"
-                  value={fbConfig.storageBucket}
-                  onChange={e => setFbConfig(c => ({ ...c, storageBucket: e.target.value }))}
-                  placeholder="fasion-gate.firebasestorage.app"
-                  className="w-full bg-[#181818] border border-white/15 px-3 py-2 text-xs text-white outline-none focus:border-[#C4922A] rounded-xs"
-                />
-              </div>
-
-              <div className="pt-3 border-t border-white/10 flex items-center justify-between">
+              {/* Step 3 */}
+              <div className="space-y-2">
+                <div className="flex items-start gap-2.5 text-xs text-white/90">
+                  <span className="w-5 h-5 rounded-full bg-[#C4922A] text-black font-bold flex items-center justify-center shrink-0 text-[10px]">3</span>
+                  <span>Publish කළ පසු පහත button එක ඔබා connection එක test කර සියලු items cloud එකට sync කරන්න:</span>
+                </div>
                 <button
                   type="button"
-                  onClick={() => {
-                    clearStoredFirebaseConfig();
-                    setFbConfig(getStoredFirebaseConfig());
-                  }}
-                  className="text-xs text-red-400 hover:underline cursor-pointer"
+                  onClick={handleTestAndSyncCloud}
+                  disabled={testConnStatus.loading || isSyncing}
+                  className="w-full btn-gold py-2.5 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-md"
                 >
-                  Reset Config
-                </button>
-                <button
-                  type="submit"
-                  className="btn-gold py-2 px-5 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
-                >
-                  {fbSavedStatus ? <><Check size={13} /> Saved!</> : 'Save & Connect'}
+                  {testConnStatus.loading || isSyncing ? (
+                    <><RefreshCw size={14} className="animate-spin text-black" /> Connecting &amp; Uploading to Cloud...</>
+                  ) : (
+                    <><Database size={14} /> Test Connection &amp; Push All Data to Cloud</>
+                  )}
                 </button>
               </div>
-            </form>
+
+              {/* Feedback Alert */}
+              {syncAllMsg && (
+                <div
+                  className={`p-3 rounded-xs text-xs font-semibold flex items-start gap-2 ${
+                    syncAllMsg.type === 'success'
+                      ? 'bg-emerald-950/90 text-emerald-200 border border-emerald-500/60'
+                      : 'bg-red-950/90 text-red-200 border border-red-500/60'
+                  }`}
+                >
+                  {syncAllMsg.type === 'success' ? (
+                    <CheckCircle2 size={16} className="text-emerald-400 shrink-0 mt-0.5" />
+                  ) : (
+                    <AlertTriangle size={16} className="text-red-400 shrink-0 mt-0.5" />
+                  )}
+                  <span className="leading-relaxed">{syncAllMsg.text}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Advanced Configuration Accordion */}
+            <details className="group border border-white/10 rounded-xs bg-white/5">
+              <summary className="p-3 text-xs text-white/70 font-semibold cursor-pointer select-none flex items-center justify-between hover:text-white">
+                <span>Advanced Firebase Project Settings</span>
+                <span className="text-[10px] text-white/40 group-open:rotate-180 transition-transform">▼</span>
+              </summary>
+              <form onSubmit={handleSaveFirebase} className="p-4 pt-1 space-y-3 border-t border-white/10">
+                <div>
+                  <label className="block text-[10px] tracking-wider uppercase text-white/60 mb-1">Firebase Project ID</label>
+                  <input
+                    type="text"
+                    value={fbConfig.projectId}
+                    onChange={e => setFbConfig(c => ({ ...c, projectId: e.target.value }))}
+                    placeholder="fasion-gate"
+                    className="w-full bg-[#181818] border border-white/15 px-3 py-2 text-xs text-white outline-none focus:border-[#C4922A] rounded-xs font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] tracking-wider uppercase text-white/60 mb-1">Firebase API Key</label>
+                  <input
+                    type="text"
+                    value={fbConfig.apiKey}
+                    onChange={e => setFbConfig(c => ({ ...c, apiKey: e.target.value }))}
+                    placeholder="AIzaSy..."
+                    className="w-full bg-[#181818] border border-white/15 px-3 py-2 text-xs text-white outline-none focus:border-[#C4922A] rounded-xs font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] tracking-wider uppercase text-white/60 mb-1">Storage Bucket</label>
+                  <input
+                    type="text"
+                    value={fbConfig.storageBucket}
+                    onChange={e => setFbConfig(c => ({ ...c, storageBucket: e.target.value }))}
+                    placeholder="fasion-gate.firebasestorage.app"
+                    className="w-full bg-[#181818] border border-white/15 px-3 py-2 text-xs text-white outline-none focus:border-[#C4922A] rounded-xs font-mono"
+                  />
+                </div>
+
+                <div className="pt-2 flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      clearStoredFirebaseConfig();
+                      setFbConfig(getStoredFirebaseConfig());
+                    }}
+                    className="text-xs text-red-400 hover:underline cursor-pointer"
+                  >
+                    Reset to Default Config
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn-gold py-1.5 px-4 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                  >
+                    {fbSavedStatus ? <><Check size={13} /> Saved!</> : 'Save Credentials'}
+                  </button>
+                </div>
+              </form>
+            </details>
+
+            <div className="flex justify-end pt-2 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => setFirebaseModalOpen(false)}
+                className="btn-outline-gold py-2 px-5 text-xs font-bold cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
