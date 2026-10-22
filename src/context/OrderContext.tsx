@@ -49,7 +49,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     // Initial fetch from Firestore
     fetchOrdersFromFirestore().then(cloudOrders => {
-      if (isMounted && cloudOrders && cloudOrders.length > 0) {
+      if (isMounted && cloudOrders !== null) {
         setOrders(cloudOrders);
         saveLocalStoredOrders(cloudOrders);
       }
@@ -57,7 +57,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     // Real-time Firestore stream
     const unsubscribe = subscribeToFirestoreOrders(cloudOrders => {
-      if (isMounted && cloudOrders && cloudOrders.length > 0) {
+      if (isMounted && cloudOrders !== null) {
         setOrders(cloudOrders);
         saveLocalStoredOrders(cloudOrders);
       }
@@ -65,7 +65,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     // Cross-tab storage listener
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'fashiongate_live_orders' && e.newValue) {
+      if (e.key === 'fashiongate_live_orders_v2' && e.newValue) {
         try {
           const parsed = JSON.parse(e.newValue);
           if (Array.isArray(parsed) && isMounted) {

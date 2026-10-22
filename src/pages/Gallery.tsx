@@ -76,14 +76,22 @@ export default function Gallery() {
         {filteredItems.length === 0 ? (
           <div className="py-20 text-center border border-dashed border-[#E8E4DF] rounded-sm p-10 max-w-md mx-auto">
             <ImageIcon className="mx-auto text-stone-300 mb-3" size={40} />
-            <h3 className="font-display text-xl font-bold text-[#0A0A0A] mb-1">No Photos in This Category</h3>
-            <p className="text-xs text-[#888] mb-4">Try selecting another filter or check back soon for new campaign releases.</p>
-            <button
-              onClick={() => setActiveFilter('all')}
-              className="btn-gold py-2 px-5 text-[11px] uppercase tracking-wider font-semibold"
-            >
-              View All Looks
-            </button>
+            <h3 className="font-display text-xl font-bold text-[#0A0A0A] mb-1">
+              {galleryItems.length === 0 ? 'Gallery Releases Coming Soon' : 'No Photos in This Category'}
+            </h3>
+            <p className="text-xs text-[#888] mb-4">
+              {galleryItems.length === 0
+                ? 'New editorial looks and campaigns will be published here shortly.'
+                : 'Try selecting another filter or check back soon for new campaign releases.'}
+            </p>
+            {galleryItems.length > 0 && activeFilter !== 'all' && (
+              <button
+                onClick={() => setActiveFilter('all')}
+                className="btn-gold py-2 px-5 text-[11px] uppercase tracking-wider font-semibold"
+              >
+                View All Looks
+              </button>
+            )}
           </div>
         ) : (
           <div className="columns-1 sm:columns-2 md:columns-3 gap-6 space-y-6">

@@ -474,6 +474,8 @@ export async function batchUploadAllProductsToFirestore(products: Product[]): Pr
 // GALLERY FIRESTORE INTEGRATION
 // =========================================================================
 
+export const GALLERY_COLLECTION = 'gallery_v2';
+
 /**
  * Sanitizes and cleans a GalleryItem object for Firestore.
  */
@@ -497,7 +499,7 @@ export function cleanGalleryItemForFirestore(item: GalleryItem): Record<string, 
 }
 
 /**
- * Real-time listener for Firestore "gallery" collection.
+ * Real-time listener for Firestore gallery collection.
  */
 export function subscribeToFirestoreGallery(
   onUpdate: (items: GalleryItem[]) => void,
@@ -507,7 +509,7 @@ export function subscribeToFirestoreGallery(
   if (!db) return null;
 
   try {
-    const colRef = collection(db, 'gallery');
+    const colRef = collection(db, GALLERY_COLLECTION);
     const unsubscribe = onSnapshot(
       colRef,
       snapshot => {
@@ -540,16 +542,17 @@ export function subscribeToFirestoreGallery(
 }
 
 /**
- * Fetch all gallery items from Firestore "gallery" collection
+ * Fetch all gallery items from Firestore gallery collection.
+ * Returns empty array [] if collection is empty.
  */
 export async function fetchGalleryFromFirestore(): Promise<GalleryItem[] | null> {
   const db = getFirestoreDB();
   if (!db) return null;
 
   try {
-    const colRef = collection(db, 'gallery');
+    const colRef = collection(db, GALLERY_COLLECTION);
     const snapshot = await getDocs(colRef);
-    if (snapshot.empty) return null;
+    if (snapshot.empty) return [];
 
     const items: GalleryItem[] = [];
     snapshot.forEach(docSnap => {
@@ -575,7 +578,7 @@ export async function saveGalleryItemToFirestore(item: GalleryItem): Promise<boo
   if (!db) return false;
 
   try {
-    const docRef = doc(db, 'gallery', String(item.id));
+    const docRef = doc(db, GALLERY_COLLECTION, String(item.id));
     const cleaned = cleanGalleryItemForFirestore(item);
     await setDoc(docRef, cleaned, { merge: true });
     return true;
@@ -593,7 +596,7 @@ export async function deleteGalleryItemFromFirestore(id: number): Promise<boolea
   if (!db) return false;
 
   try {
-    const docRef = doc(db, 'gallery', String(id));
+    const docRef = doc(db, GALLERY_COLLECTION, String(id));
     await deleteDoc(docRef);
     return true;
   } catch (err) {
@@ -603,23 +606,43 @@ export async function deleteGalleryItemFromFirestore(id: number): Promise<boolea
 }
 
 /**
- * Batch upload / sync all gallery items to Firestore at once
+ * Batch upload / sync all gallery items to Firestore at once with cleanup of obsolete items
  */
 export async function batchUploadAllGalleryToFirestore(items: GalleryItem[]): Promise<boolean> {
   const db = getFirestoreDB();
   if (!db) return false;
 
   try {
-    const batch = writeBatch(db);
-    for (const item of items) {
-      const docRef = doc(db, 'gallery', String(item.id));
-      const cleaned = cleanGalleryItemForFirestore(item);
-      batch.set(docRef, cleaned, { merge: true });
+    const colRef = collection(db, GALLERY_COLLECTION);
+    const existingSnap = await getDocs(colRef);
+    const validIds = new Set(items.map(i => String(i.id)));
+
+    // Clean up obsolete docs
+    const docsToDelete = existingSnap.docs.filter(d => !validIds.has(String(d.id)));
+    if (docsToDelete.length > 0) {
+      const deleteBatch = writeBatch(db);
+      docsToDelete.forEach(d => deleteBatch.delete(d.ref));
+      await deleteBatch.commit();
     }
-    await batch.commit();
+
+    // Upsert current items
+    if (items.length > 0) {
+      const chunkSize = 300;
+      for (let i = 0; i < items.length; i += chunkSize) {
+        const chunk = items.slice(i, i + chunkSize);
+        const batch = writeBatch(db);
+        for (const item of chunk) {
+          const docRef = doc(db, GALLERY_COLLECTION, String(item.id));
+          const cleaned = cleanGalleryItemForFirestore(item);
+          batch.set(docRef, cleaned, { merge: true });
+        }
+        await batch.commit();
+      }
+    }
     return true;
   } catch (err) {
     console.error('Failed to batch upload gallery items to Firestore:', err);
     return false;
   }
 }
+

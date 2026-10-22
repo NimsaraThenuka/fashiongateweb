@@ -3,12 +3,15 @@ import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-route
 import { motion, useScroll, AnimatePresence } from 'framer-motion';
 import { ArrowUp } from 'lucide-react';
 
-// Legacy Cache Purge: ensures all connected client devices flush old demo products
+// Legacy Cache Purge: ensures all connected client devices flush old demo products, gallery & orders
 if (typeof window !== 'undefined') {
-  const PURGE_KEY = 'fashiongate_v2_cache_purged';
+  const PURGE_KEY = 'fashiongate_v4_cache_purged';
   if (!localStorage.getItem(PURGE_KEY)) {
     localStorage.removeItem('fashiongate_live_products');
     localStorage.removeItem('fashiongate_deleted_product_ids');
+    localStorage.removeItem('fashiongate_gallery_items_v1');
+    localStorage.removeItem('fashiongate_live_orders');
+    localStorage.removeItem('fashiongate_my_orders_ids');
     localStorage.setItem(PURGE_KEY, 'true');
   }
 }
