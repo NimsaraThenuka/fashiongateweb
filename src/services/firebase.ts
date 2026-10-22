@@ -37,8 +37,9 @@ export const DEFAULT_FIREBASE_CONFIG: FirebaseConfig = {
 };
 
 const FIREBASE_CONFIG_KEY = 'fashiongate_firebase_config';
-const PRODUCTS_STORAGE_KEY = 'fashiongate_live_products';
-const DELETED_PRODUCTS_KEY = 'fashiongate_deleted_product_ids';
+const PRODUCTS_STORAGE_KEY = 'fashiongate_live_products_v2';
+const DELETED_PRODUCTS_KEY = 'fashiongate_deleted_product_ids_v2';
+
 
 export function getStoredFirebaseConfig(): FirebaseConfig {
   try {
@@ -113,6 +114,12 @@ export function resetFirebaseInstance(): void {
 // LocalStorage helpers
 export function getLocalStoredProducts(): Product[] | null {
   try {
+    if (typeof window !== 'undefined') {
+      if (localStorage.getItem('fashiongate_live_products')) {
+        localStorage.removeItem('fashiongate_live_products');
+        localStorage.removeItem('fashiongate_deleted_product_ids');
+      }
+    }
     const data = localStorage.getItem(PRODUCTS_STORAGE_KEY);
     return data ? JSON.parse(data) : null;
   } catch (e) {
@@ -120,6 +127,7 @@ export function getLocalStoredProducts(): Product[] | null {
     return null;
   }
 }
+
 
 export function saveLocalStoredProducts(products: Product[]): void {
   try {
@@ -211,6 +219,7 @@ export function cleanProductForFirestore(product: Product): Record<string, any> 
 }
 
 // Firestore CRUD operations & Real-time Subscriptions
+export const PRODUCTS_COLLECTION = 'products_v2';
 
 let lastFirestoreError: string | null = null;
 export function getLastFirestoreError(): string | null {
@@ -236,8 +245,9 @@ export async function testFirestoreConnection(): Promise<{
   }
 
   try {
-    const colRef = collection(db, 'products');
+    const colRef = collection(db, PRODUCTS_COLLECTION);
     const snapshot = await getDocs(colRef);
+
     lastFirestoreError = null;
     return {
       connected: true,
@@ -257,7 +267,7 @@ export async function testFirestoreConnection(): Promise<{
       connected: false,
       status: isPermission ? 'permission_denied' : 'offline',
       error: isPermission
-        ? 'Firebase Firestore Security Rules are blocking access (Permission Denied). Please update rules in Firebase Console.'
+        ? 'Database access denied. Please verify your cloud permissions.'
         : msg,
     };
   }
@@ -276,7 +286,7 @@ export function subscribeToFirestoreProducts(
   if (!db) return null;
 
   try {
-    const colRef = collection(db, 'products');
+    const colRef = collection(db, PRODUCTS_COLLECTION);
     const unsubscribe = onSnapshot(
       colRef,
       snapshot => {
@@ -311,15 +321,16 @@ export function subscribeToFirestoreProducts(
 }
 
 /**
- * Fetch all products from Firestore "products" collection
+ * Fetch all products from Firestore products collection
  */
 export async function fetchProductsFromFirestore(): Promise<Product[] | null> {
   const db = getFirestoreDB();
   if (!db) return null;
 
   try {
-    const colRef = collection(db, 'products');
+    const colRef = collection(db, PRODUCTS_COLLECTION);
     const snapshot = await getDocs(colRef);
+
 
     if (snapshot.empty) {
       return [];
@@ -360,7 +371,8 @@ export async function saveProductToFirestore(product: Product): Promise<boolean>
   if (!db) return false;
 
   try {
-    const docRef = doc(db, 'products', String(product.id));
+    const docRef = doc(db, PRODUCTS_COLLECTION, String(product.id));
+
     const cleaned = cleanProductForFirestore(product);
     await setDoc(docRef, cleaned, { merge: true });
     removeDeletedProductId(product.id);
@@ -388,7 +400,7 @@ export async function deleteProductFromFirestore(id: number): Promise<boolean> {
   if (!db) return false;
 
   try {
-    const docRef = doc(db, 'products', String(id));
+    const docRef = doc(db, PRODUCTS_COLLECTION, String(id));
     await deleteDoc(docRef);
     addDeletedProductId(id);
     lastFirestoreError = null;
@@ -408,19 +420,34 @@ export async function deleteProductFromFirestore(id: number): Promise<boolean> {
 }
 
 /**
- * Batch upload / sync all products to Firestore at once with chunking
+ * Batch upload / sync all products to Firestore at once with chunking.
+ * Also cleans up any obsolete documents in Firestore not present in the current products array.
  */
 export async function batchUploadAllProductsToFirestore(products: Product[]): Promise<boolean> {
   const db = getFirestoreDB();
   if (!db) return false;
 
   try {
+    // 1. Fetch existing documents to detect and remove obsolete ones
+    const colRef = collection(db, PRODUCTS_COLLECTION);
+    const existingSnap = await getDocs(colRef);
+    const validIds = new Set(products.map(p => String(p.id)));
+
+    // 2. Delete documents from Firestore that are no longer in the active list
+    const docsToDelete = existingSnap.docs.filter(d => !validIds.has(String(d.id)));
+    if (docsToDelete.length > 0) {
+      const deleteBatch = writeBatch(db);
+      docsToDelete.forEach(d => deleteBatch.delete(d.ref));
+      await deleteBatch.commit();
+    }
+
+    // 3. Upsert active products in chunks
     const chunkSize = 300;
     for (let i = 0; i < products.length; i += chunkSize) {
       const chunk = products.slice(i, i + chunkSize);
       const batch = writeBatch(db);
       for (const p of chunk) {
-        const docRef = doc(db, 'products', String(p.id));
+        const docRef = doc(db, PRODUCTS_COLLECTION, String(p.id));
         const cleaned = cleanProductForFirestore(p);
         batch.set(docRef, cleaned, { merge: true });
       }
@@ -441,6 +468,7 @@ export async function batchUploadAllProductsToFirestore(products: Product[]): Pr
     return false;
   }
 }
+
 
 // =========================================================================
 // GALLERY FIRESTORE INTEGRATION

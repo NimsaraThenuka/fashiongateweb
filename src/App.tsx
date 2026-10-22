@@ -2,6 +2,17 @@ import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { motion, useScroll, AnimatePresence } from 'framer-motion';
 import { ArrowUp } from 'lucide-react';
+
+// Legacy Cache Purge: ensures all connected client devices flush old demo products
+if (typeof window !== 'undefined') {
+  const PURGE_KEY = 'fashiongate_v2_cache_purged';
+  if (!localStorage.getItem(PURGE_KEY)) {
+    localStorage.removeItem('fashiongate_live_products');
+    localStorage.removeItem('fashiongate_deleted_product_ids');
+    localStorage.setItem(PURGE_KEY, 'true');
+  }
+}
+
 import { CustomerAuthProvider } from './context/CustomerAuthContext';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';

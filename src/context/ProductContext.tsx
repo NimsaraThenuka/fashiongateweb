@@ -57,35 +57,6 @@ const normalizeProductList = (list: Product[]): Product[] => {
   return list.filter(p => !deletedIds.has(Number(p.id))).map(normalizeProduct);
 };
 
-// Merges cloud products and local products without losing newly created local products
-const mergeCloudAndLocalProducts = (cloudList: Product[], localList: Product[]): Product[] => {
-  const deletedIds = new Set(getDeletedProductIds());
-  const productMap = new Map<number, Product>();
-
-  // 1. Populate with valid non-deleted cloud products
-  cloudList.forEach(p => {
-    const numId = Number(p.id);
-    if (!deletedIds.has(numId)) {
-      productMap.set(numId, normalizeProduct(p));
-    }
-  });
-
-  // 2. Add any local products not yet present in cloud (e.g. freshly created products)
-  localList.forEach(localP => {
-    const numId = Number(localP.id);
-    if (!deletedIds.has(numId) && !productMap.has(numId)) {
-      const normalized = normalizeProduct(localP);
-      productMap.set(numId, normalized);
-      // Auto-sync this local piece to Firestore
-      saveProductToFirestore(normalized).catch(err =>
-        console.warn('Auto cloud sync notice for local product:', err)
-      );
-    }
-  });
-
-  return Array.from(productMap.values());
-};
-
 export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [products, setProducts] = useState<Product[]>(() => {
     const local = getLocalStoredProducts();
@@ -107,10 +78,11 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       if (cloudProducts !== null) {
         if (cloudProducts.length > 0) {
-          const merged = mergeCloudAndLocalProducts(cloudProducts, baseLocal);
+          // Cloud has data: Cloud is the definitive source of truth across all devices
+          const normalized = normalizeProductList(cloudProducts);
           if (isMountedRef.current) {
-            setProducts(merged);
-            saveLocalStoredProducts(merged);
+            setProducts(normalized);
+            saveLocalStoredProducts(normalized);
             setCloudSyncStatus('connected');
             setCloudError(null);
           }
@@ -161,10 +133,9 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       cloudProducts => {
         if (isMountedRef.current && cloudProducts) {
           if (cloudProducts.length > 0) {
-            const currentLocal = getLocalStoredProducts() || [];
-            const merged = mergeCloudAndLocalProducts(cloudProducts, currentLocal);
-            setProducts(merged);
-            saveLocalStoredProducts(merged);
+            const normalized = normalizeProductList(cloudProducts);
+            setProducts(normalized);
+            saveLocalStoredProducts(normalized);
           }
           setCloudSyncStatus('connected');
           setCloudError(null);
@@ -183,7 +154,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     // Cross-Tab Live Storage Event Listener (Instantly syncs across multiple tabs in same browser)
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'fashiongate_live_products' && e.newValue) {
+      if (e.key === 'fashiongate_live_products_v2' && e.newValue) {
         try {
           const parsed = JSON.parse(e.newValue);
           if (Array.isArray(parsed) && parsed.length > 0 && isMountedRef.current) {
@@ -195,6 +166,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
     };
     window.addEventListener('storage', handleStorageChange);
+
 
     // Custom window event for same-tab instant broadcast
     const handleCustomSync = (e: Event) => {
