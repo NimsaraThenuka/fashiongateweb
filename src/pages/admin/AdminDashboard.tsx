@@ -367,16 +367,16 @@ export default function AdminDashboard() {
     setModalOpen(true);
   };
 
-  const handleSaveProduct = (productData: any) => {
+  const handleSaveProduct = async (productData: any) => {
     if (editingProduct) {
-      updateProduct(editingProduct.id, productData);
+      await updateProduct(editingProduct.id, productData);
     } else {
-      addProduct(productData);
+      await addProduct(productData);
     }
   };
 
-  const handleDelete = (id: number) => {
-    deleteProduct(id);
+  const handleDelete = async (id: number) => {
+    await deleteProduct(id);
     setDeleteConfirmId(null);
   };
 

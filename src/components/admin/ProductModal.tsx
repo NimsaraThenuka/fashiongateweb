@@ -5,7 +5,7 @@ import { Product } from '../../data/products';
 interface ProductModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (productData: any) => void;
+  onSave: (productData: any) => void | Promise<void>;
   product?: Product | null;
 }
 
@@ -93,6 +93,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
   const [badge, setBadge] = useState<'new' | 'sale' | 'trending' | 'limited' | undefined>(undefined);
   const [stockQuantity, setStockQuantity] = useState<number | ''>(12);
   const [inStock, setInStock] = useState<boolean>(true);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -214,9 +215,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
     return Object.keys(err).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validate() || isSubmitting) return;
 
     const allImgs = [mainImage.trim(), ...galleryImages.filter(img => img.trim() !== mainImage.trim())];
     const finalStock = typeof stockQuantity === 'number' ? Math.max(0, stockQuantity) : 0;
@@ -238,8 +239,15 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
       inStock: finalStock > 0,
     };
 
-    onSave(payload);
-    onClose();
+    try {
+      setIsSubmitting(true);
+      await onSave(payload);
+      onClose();
+    } catch (err: any) {
+      console.error('Save product error:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -858,10 +866,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
             </button>
             <button
               type="submit"
-              className="flex-1 sm:flex-none h-9.5 sm:h-10 px-4 sm:px-7 bg-[#C4922A] hover:bg-[#d49f33] active:bg-[#a6791e] text-white text-[11px] sm:text-xs tracking-wider uppercase font-bold flex items-center justify-center gap-1.5 cursor-pointer rounded-xs shadow-md whitespace-nowrap transition-all"
+              disabled={isSubmitting}
+              className={`flex-1 sm:flex-none h-9.5 sm:h-10 px-4 sm:px-7 bg-[#C4922A] hover:bg-[#d49f33] active:bg-[#a6791e] text-white text-[11px] sm:text-xs tracking-wider uppercase font-bold flex items-center justify-center gap-1.5 cursor-pointer rounded-xs shadow-md whitespace-nowrap transition-all ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
             >
               <Sparkles size={13} className="shrink-0" />
-              <span>{product ? 'Update Piece' : 'Publish to Store'}</span>
+              <span>{isSubmitting ? 'Publishing...' : product ? 'Update Piece' : 'Publish to Store'}</span>
             </button>
           </div>
         </form>

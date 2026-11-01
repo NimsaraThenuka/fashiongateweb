@@ -5,6 +5,7 @@ import {
   collection,
   doc,
   getDocs,
+  getDocsFromServer,
   setDoc,
   deleteDoc,
   writeBatch,
@@ -196,6 +197,7 @@ export function cleanProductForFirestore(product: Product): Record<string, any> 
   cleaned.inStock = cleaned.stockQuantity > 0;
   cleaned.rating = typeof cleaned.rating === 'number' ? cleaned.rating : 5.0;
   cleaned.reviews = typeof cleaned.reviews === 'number' ? cleaned.reviews : 1;
+  cleaned.updatedAt = Date.now();
 
   if (product.originalPrice && Number(product.originalPrice) > 0) {
     cleaned.originalPrice = Number(product.originalPrice);
@@ -329,8 +331,14 @@ export async function fetchProductsFromFirestore(): Promise<Product[] | null> {
 
   try {
     const colRef = collection(db, PRODUCTS_COLLECTION);
-    const snapshot = await getDocs(colRef);
-
+    let snapshot;
+    try {
+      // Force fetching from server first to prevent stale client cache on other devices
+      snapshot = await getDocsFromServer(colRef);
+    } catch {
+      // Fallback to cache/default if offline
+      snapshot = await getDocs(colRef);
+    }
 
     if (snapshot.empty) {
       return [];
@@ -428,20 +436,7 @@ export async function batchUploadAllProductsToFirestore(products: Product[]): Pr
   if (!db) return false;
 
   try {
-    // 1. Fetch existing documents to detect and remove obsolete ones
-    const colRef = collection(db, PRODUCTS_COLLECTION);
-    const existingSnap = await getDocs(colRef);
-    const validIds = new Set(products.map(p => String(p.id)));
-
-    // 2. Delete documents from Firestore that are no longer in the active list
-    const docsToDelete = existingSnap.docs.filter(d => !validIds.has(String(d.id)));
-    if (docsToDelete.length > 0) {
-      const deleteBatch = writeBatch(db);
-      docsToDelete.forEach(d => deleteBatch.delete(d.ref));
-      await deleteBatch.commit();
-    }
-
-    // 3. Upsert active products in chunks
+    // Upsert active products in chunks without deleting other devices' items
     const chunkSize = 300;
     for (let i = 0; i < products.length; i += chunkSize) {
       const chunk = products.slice(i, i + chunkSize);

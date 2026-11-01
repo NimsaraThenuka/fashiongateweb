@@ -20,12 +20,12 @@ export type CloudStatus = 'connected' | 'offline' | 'permission_denied' | 'synci
 
 interface ProductContextType {
   products: Product[];
-  addProduct: (newProd: Omit<Product, 'id' | 'rating' | 'reviews'>) => Product;
-  updateProduct: (id: number, updated: Partial<Product>) => void;
-  deleteProduct: (id: number) => void;
-  toggleStock: (id: number) => void;
-  updateStockQuantity: (id: number, newStock: number) => void;
-  reduceStock: (items: { id: number; quantity: number }[]) => void;
+  addProduct: (newProd: Omit<Product, 'id' | 'rating' | 'reviews'>) => Promise<Product>;
+  updateProduct: (id: number, updated: Partial<Product>) => Promise<void>;
+  deleteProduct: (id: number) => Promise<void>;
+  toggleStock: (id: number) => Promise<void>;
+  updateStockQuantity: (id: number, newStock: number) => Promise<void>;
+  reduceStock: (items: { id: number; quantity: number }[]) => Promise<void>;
   resetToDefaults: () => void;
   getProductById: (id: number) => Product | undefined;
   syncAllToCloud: () => Promise<{ success: boolean; error?: string; count?: number }>;
@@ -52,7 +52,25 @@ const normalizeProduct = (p: Product): Product => {
   };
 };
 
-const normalizeProductList = (list: Product[]): Product[] => {
+const normalizeProductList = (list: Product[], isCloudSource: boolean = false): Product[] => {
+  if (isCloudSource) {
+    // Cloud Firestore is the definitive source of truth across all devices.
+    // If a product exists in Firestore, it is valid and MUST NOT be blocked by local deleted cache.
+    const deletedIds = getDeletedProductIds();
+    if (deletedIds.length > 0) {
+      const cloudIdSet = new Set(list.map(p => Number(p.id)));
+      const remaining = deletedIds.filter(id => !cloudIdSet.has(id));
+      if (remaining.length !== deletedIds.length) {
+        try {
+          localStorage.setItem('fashiongate_deleted_product_ids_v2', JSON.stringify(remaining));
+        } catch {
+          // ignore
+        }
+      }
+    }
+    return list.map(normalizeProduct);
+  }
+
   const deletedIds = new Set(getDeletedProductIds());
   return list.filter(p => !deletedIds.has(Number(p.id))).map(normalizeProduct);
 };
@@ -79,7 +97,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (cloudProducts !== null) {
         if (cloudProducts.length > 0) {
           // Cloud has data: Cloud is the definitive source of truth across all devices
-          const normalized = normalizeProductList(cloudProducts);
+          const normalized = normalizeProductList(cloudProducts, true);
           if (isMountedRef.current) {
             setProducts(normalized);
             saveLocalStoredProducts(normalized);
@@ -133,7 +151,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       cloudProducts => {
         if (isMountedRef.current && cloudProducts) {
           if (cloudProducts.length > 0) {
-            const normalized = normalizeProductList(cloudProducts);
+            const normalized = normalizeProductList(cloudProducts, true);
             setProducts(normalized);
             saveLocalStoredProducts(normalized);
           }
@@ -152,13 +170,31 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
     );
 
+    // Cross-device automatic refresh on tab switch, device screen unlock, or reconnect
+    const handleRecheckSync = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible' && isMountedRef.current) {
+        initFirestore(isMountedRef);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleRecheckSync);
+    window.addEventListener('focus', handleRecheckSync);
+    window.addEventListener('online', handleRecheckSync);
+
+    // Heartbeat check every 25s so mobile browsers or background tabs always catch up
+    const heartbeatInterval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible' && isMountedRef.current) {
+        initFirestore(isMountedRef);
+      }
+    }, 25000);
+
     // Cross-Tab Live Storage Event Listener (Instantly syncs across multiple tabs in same browser)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'fashiongate_live_products_v2' && e.newValue) {
         try {
           const parsed = JSON.parse(e.newValue);
           if (Array.isArray(parsed) && parsed.length > 0 && isMountedRef.current) {
-            setProducts(normalizeProductList(parsed));
+            setProducts(normalizeProductList(parsed, true));
           }
         } catch {
           // ignore
@@ -167,12 +203,11 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
     window.addEventListener('storage', handleStorageChange);
 
-
     // Custom window event for same-tab instant broadcast
     const handleCustomSync = (e: Event) => {
       const customEvent = e as CustomEvent<Product[]>;
       if (customEvent.detail && Array.isArray(customEvent.detail) && isMountedRef.current) {
-        setProducts(normalizeProductList(customEvent.detail));
+        setProducts(normalizeProductList(customEvent.detail, true));
       }
     };
     window.addEventListener('fashiongate_products_updated', handleCustomSync);
@@ -192,6 +227,10 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return () => {
       isMountedRef.current = false;
       if (unsubscribeFirestore) unsubscribeFirestore();
+      clearInterval(heartbeatInterval);
+      document.removeEventListener('visibilitychange', handleRecheckSync);
+      window.removeEventListener('focus', handleRecheckSync);
+      window.removeEventListener('online', handleRecheckSync);
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('fashiongate_products_updated', handleCustomSync);
       window.removeEventListener('fashiongate_firestore_error', handleFirestoreError);
@@ -209,10 +248,20 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  const addProduct = (data: Omit<Product, 'id' | 'rating' | 'reviews'>): Product => {
-    // Determine the highest existing ID across memory + localStorage
+  const addProduct = async (data: Omit<Product, 'id' | 'rating' | 'reviews'>): Promise<Product> => {
+    // 1. Fetch latest products from Firestore first to ensure maxId is globally accurate across devices
+    let currentCloudProducts: Product[] = [];
+    try {
+      const fetched = await fetchProductsFromFirestore();
+      if (fetched && Array.isArray(fetched) && fetched.length > 0) {
+        currentCloudProducts = fetched;
+      }
+    } catch {
+      // ignore
+    }
+
     const local = getLocalStoredProducts() || [];
-    const allKnown = [...products, ...local];
+    const allKnown = [...products, ...local, ...currentCloudProducts];
     const maxId = allKnown.length > 0 ? Math.max(...allKnown.map(p => Number(p.id) || 0)) : 0;
     const nextId = maxId + 1;
 
@@ -231,19 +280,21 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     removeDeletedProductId(nextId);
 
+    // Save directly to Firestore and await confirmation so it propagates immediately to all devices
+    const saved = await saveProductToFirestore(newProduct);
+    if (!saved) {
+      console.warn('Direct Firestore write returned false, will still preserve locally.');
+    }
+
     const nextList = [newProduct, ...products.filter(p => p.id !== nextId)];
     setProducts(nextList);
     broadcastProducts(nextList);
 
-    // Push to Firestore in background
-    saveProductToFirestore(newProduct).catch(err =>
-      console.warn('Firestore async save failed:', err)
-    );
-
     return newProduct;
   };
 
-  const updateProduct = (id: number, updated: Partial<Product>) => {
+  const updateProduct = async (id: number, updated: Partial<Product>) => {
+    let targetUpdated: Product | undefined;
     const nextList = products.map(p => {
       if (p.id === id) {
         const merged = { ...p, ...updated };
@@ -262,12 +313,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
             merged.stockQuantity = 10;
           }
         }
-
-        // Push to Firestore in background
-        saveProductToFirestore(merged).catch(err =>
-          console.warn('Firestore async update failed:', err)
-        );
-
+        targetUpdated = merged;
         return merged;
       }
       return p;
@@ -275,21 +321,24 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     setProducts(nextList);
     broadcastProducts(nextList);
+
+    if (targetUpdated) {
+      await saveProductToFirestore(targetUpdated);
+    }
   };
 
-  const deleteProduct = (id: number) => {
+  const deleteProduct = async (id: number) => {
     addDeletedProductId(id);
     const nextList = products.filter(p => p.id !== id);
     setProducts(nextList);
     broadcastProducts(nextList);
 
     // Delete in Firestore
-    deleteProductFromFirestore(id).catch(err =>
-      console.warn('Firestore async delete failed:', err)
-    );
+    await deleteProductFromFirestore(id);
   };
 
-  const toggleStock = (id: number) => {
+  const toggleStock = async (id: number) => {
+    let targetUpdated: Product | undefined;
     const nextList = products.map(p => {
       if (p.id === id) {
         const willBeInStock = !p.inStock;
@@ -299,9 +348,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
           inStock: willBeInStock,
           stockQuantity: nextStock,
         };
-        saveProductToFirestore(updated).catch(err =>
-          console.warn('Firestore async stock toggle failed:', err)
-        );
+        targetUpdated = updated;
         return updated;
       }
       return p;
@@ -309,10 +356,15 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     setProducts(nextList);
     broadcastProducts(nextList);
+
+    if (targetUpdated) {
+      await saveProductToFirestore(targetUpdated);
+    }
   };
 
-  const updateStockQuantity = (id: number, newStock: number) => {
+  const updateStockQuantity = async (id: number, newStock: number) => {
     const sanitized = Math.max(0, Math.floor(newStock));
+    let targetUpdated: Product | undefined;
     const nextList = products.map(p => {
       if (p.id === id) {
         const updated: Product = {
@@ -320,9 +372,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
           stockQuantity: sanitized,
           inStock: sanitized > 0,
         };
-        saveProductToFirestore(updated).catch(err =>
-          console.warn('Firestore async stock update failed:', err)
-        );
+        targetUpdated = updated;
         return updated;
       }
       return p;
@@ -330,12 +380,17 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     setProducts(nextList);
     broadcastProducts(nextList);
+
+    if (targetUpdated) {
+      await saveProductToFirestore(targetUpdated);
+    }
   };
 
   // Real-time stock reduction after purchase
-  const reduceStock = (itemsToReduce: { id: number; quantity: number }[]) => {
+  const reduceStock = async (itemsToReduce: { id: number; quantity: number }[]) => {
     if (!itemsToReduce || itemsToReduce.length === 0) return;
 
+    const modifiedList: Product[] = [];
     const nextList = products.map(p => {
       const target = itemsToReduce.find(i => i.id === p.id);
       if (target) {
@@ -346,9 +401,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
           stockQuantity: newStock,
           inStock: newStock > 0,
         };
-        saveProductToFirestore(updated).catch(err =>
-          console.warn('Firestore async stock reduction failed:', err)
-        );
+        modifiedList.push(updated);
         return updated;
       }
       return p;
@@ -356,6 +409,12 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     setProducts(nextList);
     broadcastProducts(nextList);
+
+    for (const item of modifiedList) {
+      await saveProductToFirestore(item).catch(err =>
+        console.warn('Firestore stock reduction failed:', err)
+      );
+    }
   };
 
   const resetToDefaults = () => {
@@ -405,14 +464,19 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (testResult.connected) {
       setCloudSyncStatus('connected');
       setCloudError(null);
-      // Automatically push latest local products up to cloud so other devices receive them
-      await batchUploadAllProductsToFirestore(products);
+      // Fetch fresh products from Firestore server
+      const cloudProds = await fetchProductsFromFirestore();
+      if (cloudProds && cloudProds.length > 0) {
+        const normalized = normalizeProductList(cloudProds, true);
+        setProducts(normalized);
+        saveLocalStoredProducts(normalized);
+      }
     } else {
       setCloudSyncStatus(testResult.status);
       setCloudError(testResult.error || 'Connection failed');
     }
     setIsSyncing(false);
-  }, [products]);
+  }, []);
 
   return (
     <ProductContext.Provider
