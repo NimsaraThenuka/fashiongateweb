@@ -156,8 +156,8 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md overflow-y-auto animate-fade-in">
-      <div className="bg-[#121212] border border-white/15 rounded-md max-w-4xl w-full max-h-[92vh] overflow-y-auto shadow-2xl p-5 sm:p-8 space-y-6 my-auto text-white">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-2.5 sm:p-6 bg-black/85 backdrop-blur-md overflow-y-auto overflow-x-hidden animate-fade-in">
+      <div className="bg-[#121212] border border-white/15 rounded-md max-w-full sm:max-w-4xl w-full max-h-[92vh] overflow-y-auto overflow-x-hidden shadow-2xl p-4 sm:p-8 space-y-5 sm:space-y-6 my-auto text-white min-w-0">
 
         {/* Modal Header */}
         <div className="flex items-start justify-between border-b border-white/10 pb-4">
@@ -445,19 +445,19 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({
           </div>
 
           {/* Modal Footer Buttons */}
-          <div className="pt-4 border-t border-white/10 flex items-center justify-end gap-3">
+          <div className="pt-4 border-t border-white/10 flex items-center justify-end gap-2.5">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 border border-white/20 text-white/70 hover:text-white text-xs uppercase tracking-wider font-semibold rounded-xs transition-colors cursor-pointer"
+              className="flex-1 sm:flex-none h-9.5 sm:h-10 px-4 sm:px-6 border border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white text-[11px] sm:text-xs uppercase tracking-wider font-semibold rounded-xs transition-colors cursor-pointer flex items-center justify-center whitespace-nowrap"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="btn-gold px-6 py-2.5 text-xs uppercase tracking-wider font-bold rounded-xs shadow-md flex items-center gap-2 cursor-pointer"
+              className="flex-1 sm:flex-none h-9.5 sm:h-10 px-5 sm:px-6 bg-[#C4922A] hover:bg-[#d49f33] active:bg-[#a6791e] text-white text-[11px] sm:text-xs uppercase tracking-wider font-bold rounded-xs shadow-md flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap transition-colors"
             >
-              <Check size={14} />
+              <Check size={13} className="shrink-0" />
               <span>{item ? 'Update Photo' : 'Publish Look'}</span>
             </button>
           </div>

@@ -33,7 +33,8 @@ import {
   ZoomOut,
   Clock,
   AlertCircle,
-  X
+  X,
+  Menu
 } from 'lucide-react';
 import { useProducts } from '../../context/ProductContext';
 import { useOrders } from '../../context/OrderContext';
@@ -78,6 +79,7 @@ export default function AdminDashboard() {
 
   // Top-Level Main Section Tab: 'products' | 'orders' | 'gallery'
   const [mainSection, setMainSection] = useState<'products' | 'orders' | 'gallery'>('products');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Products Tab Filter State
   const [activeTab, setActiveTab] = useState<'all' | 'women' | 'men' | 'kids' | 'accessories' | 'new' | 'outofstock' | 'sale'>('all');
@@ -447,151 +449,314 @@ export default function AdminDashboard() {
   return (
     <>
       <div className="no-print min-h-screen bg-[#0A0A0A] text-white flex flex-col font-sans">
-        {/* Top Luxury Admin Header Bar */}
-      <header className="bg-[#111111] border-b border-white/10 sticky top-0 z-40 px-4 sm:px-6 py-3">
-        <div className="max-w-[1600px] mx-auto flex flex-wrap md:flex-nowrap items-center justify-between gap-3 md:gap-4">
-          {/* Brand & Section Switcher */}
-          <div className="flex items-center gap-3 sm:gap-5 shrink-0">
-            <Link to="/" className="flex items-center gap-3 group shrink-0">
-              <img src={LOGO_URL} alt="Fashion Gate" className="h-9 sm:h-10 w-auto brightness-0 invert shrink-0 object-contain" />
-              <div className="border-l border-white/20 pl-3 hidden sm:block">
-                <p className="text-sm font-bold text-white tracking-wider whitespace-nowrap leading-none">FASHION GATE</p>
-                <p className="text-[9px] text-[#C4922A] tracking-[0.2em] uppercase font-mono whitespace-nowrap mt-1 leading-none">Administration Hub</p>
-              </div>
-            </Link>
+        {/* Top Luxury Admin Header Bar - DESKTOP VIEW (Unchanged) */}
+        <header className="hidden md:block bg-[#111111] border-b border-white/10 sticky top-0 z-40 px-4 sm:px-6 py-3">
+          <div className="max-w-[1600px] mx-auto flex flex-wrap md:flex-nowrap items-center justify-between gap-3 md:gap-4">
+            {/* Brand & Section Switcher */}
+            <div className="flex items-center gap-3 sm:gap-5 shrink-0">
+              <Link to="/" className="flex items-center gap-3 group shrink-0">
+                <img src={LOGO_URL} alt="Fashion Gate" className="h-9 sm:h-10 w-auto brightness-0 invert shrink-0 object-contain" />
+                <div className="border-l border-white/20 pl-3 hidden sm:block">
+                  <p className="text-sm font-bold text-white tracking-wider whitespace-nowrap leading-none">FASHION GATE</p>
+                  <p className="text-[9px] text-[#C4922A] tracking-[0.2em] uppercase font-mono whitespace-nowrap mt-1 leading-none">Administration Hub</p>
+                </div>
+              </Link>
 
-            {/* Main Section Navigation Switcher */}
-            <div className="flex items-center bg-black/60 border border-white/15 p-1 rounded-sm shrink-0 h-9">
+              {/* Main Section Navigation Switcher */}
+              <div className="flex items-center bg-black/60 border border-white/15 p-1 rounded-sm shrink-0 h-9">
+                <button
+                  type="button"
+                  onClick={() => setMainSection('products')}
+                  className={`flex items-center justify-center gap-2 px-3.5 h-full rounded-xs text-xs font-semibold tracking-wider uppercase transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                    mainSection === 'products'
+                      ? 'bg-[#C4922A] text-white shadow-sm'
+                      : 'text-white/60 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <Package size={14} className="shrink-0" />
+                  <span className="whitespace-nowrap leading-none">Products ({products.length})</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setMainSection('orders')}
+                  className={`flex items-center justify-center gap-2 px-3.5 h-full rounded-xs text-xs font-semibold tracking-wider uppercase transition-all cursor-pointer relative whitespace-nowrap shrink-0 ${
+                    mainSection === 'orders'
+                      ? 'bg-[#C4922A] text-white shadow-sm'
+                      : 'text-white/60 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <ShoppingBag size={14} className="shrink-0" />
+                  <span className="whitespace-nowrap leading-none">Orders ({orders.length})</span>
+                  {orderStats.processing > 0 && (
+                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0" />
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setMainSection('gallery')}
+                  className={`flex items-center justify-center gap-2 px-3.5 h-full rounded-xs text-xs font-semibold tracking-wider uppercase transition-all cursor-pointer relative whitespace-nowrap shrink-0 ${
+                    mainSection === 'gallery'
+                      ? 'bg-[#C4922A] text-white shadow-sm'
+                      : 'text-white/60 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <ImageIcon size={14} className="shrink-0" />
+                  <span className="whitespace-nowrap leading-none">Gallery ({galleryItems.length})</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Action Tools & Admin Profile */}
+            <div className="flex items-center gap-2 sm:gap-2.5 shrink-0 justify-end">
+              <Link
+                to="/"
+                target="_blank"
+                className="inline-flex items-center gap-1.5 px-3 h-9 text-[11px] uppercase tracking-wider text-white/70 hover:text-white border border-white/15 hover:border-[#C4922A] bg-black/40 hover:bg-white/5 rounded-xs transition-colors whitespace-nowrap shrink-0"
+                title="Open Live Boutique Store"
+              >
+                <ExternalLink size={13} className="shrink-0 text-white/60" />
+                <span className="whitespace-nowrap">Live Store</span>
+              </Link>
+
+              {/* Cloudinary Link Tool */}
+              <button
+                onClick={() => setCloudinaryTesterOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 h-9 text-[11px] uppercase tracking-wider text-[#E8B84B] bg-[#C4922A]/10 border border-[#C4922A]/40 rounded-xs hover:bg-[#C4922A]/20 transition-all cursor-pointer whitespace-nowrap shrink-0"
+                title="Open Cloudinary Image Link Helper"
+              >
+                <ImageIcon size={13} className="shrink-0 text-[#C4922A]" />
+                <span className="whitespace-nowrap">Cloudinary Tool</span>
+              </button>
+
+              {/* Cloud Sync Tool */}
               <button
                 type="button"
-                onClick={() => setMainSection('products')}
-                className={`flex items-center justify-center gap-2 px-3.5 h-full rounded-xs text-xs font-semibold tracking-wider uppercase transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                onClick={() => {
+                  setSyncMsg(null);
+                  setFirebaseModalOpen(true);
+                }}
+                className="inline-flex items-center gap-1.5 px-3 h-9 text-[11px] uppercase tracking-wider text-white/80 hover:text-white border border-white/15 hover:border-[#C4922A] bg-black/40 hover:bg-white/5 rounded-xs transition-colors cursor-pointer whitespace-nowrap shrink-0"
+                title="Cloud Database Sync"
+              >
+                <Database size={13} className="shrink-0 text-[#C4922A]" />
+                <span className="whitespace-nowrap">Cloud Sync</span>
+              </button>
+
+              {/* Tab-specific primary action button */}
+              {mainSection === 'products' ? (
+                <button
+                  onClick={handleOpenAdd}
+                  className="btn-gold h-9 px-3.5 text-xs tracking-wider uppercase font-bold flex items-center gap-1.5 cursor-pointer shadow-md whitespace-nowrap shrink-0"
+                >
+                  <Plus size={15} className="shrink-0" />
+                  <span className="whitespace-nowrap">Add New Piece</span>
+                </button>
+              ) : mainSection === 'orders' ? (
+                <Link
+                  to="/order-tracking"
+                  target="_blank"
+                  className="inline-flex items-center gap-1.5 px-3.5 h-9 text-xs uppercase tracking-wider font-bold bg-[#C4922A] text-white border border-[#C4922A] rounded-xs hover:bg-[#d49f33] transition-all cursor-pointer shadow-md whitespace-nowrap shrink-0"
+                >
+                  <Truck size={14} className="shrink-0" />
+                  <span className="whitespace-nowrap">Tracking Portal</span>
+                </Link>
+              ) : (
+                <button
+                  onClick={handleOpenAddGallery}
+                  className="btn-gold h-9 px-3.5 text-xs tracking-wider uppercase font-bold flex items-center gap-1.5 cursor-pointer shadow-md whitespace-nowrap shrink-0"
+                >
+                  <Plus size={15} className="shrink-0" />
+                  <span className="whitespace-nowrap">Add Gallery Look</span>
+                </button>
+              )}
+
+              {/* Balanced Sign Out Button */}
+              <button
+                onClick={handleLogout}
+                className="inline-flex items-center gap-1.5 px-3 h-9 text-[11px] font-semibold uppercase tracking-wider text-red-400/90 hover:text-red-300 bg-red-950/30 hover:bg-red-950/60 border border-red-500/30 hover:border-red-500/60 rounded-xs transition-all cursor-pointer whitespace-nowrap shrink-0 shadow-xs active:scale-95"
+                title="Sign Out of Admin Portal"
+              >
+                <LogOut size={13} className="shrink-0 text-red-400" />
+                <span className="whitespace-nowrap">Sign Out</span>
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Top Mobile Dedicated Header Bar - MOBILE VIEW */}
+        <header className="md:hidden bg-[#111111] border-b border-white/10 sticky top-0 z-40 px-3 py-2.5">
+          <div className="flex flex-col gap-2.5">
+            {/* Top Row: Brand & Quick Primary Action & Menu Toggle */}
+            <div className="flex items-center justify-between gap-2">
+              <Link to="/" className="flex items-center gap-2 shrink-0">
+                <img src={LOGO_URL} alt="Fashion Gate" className="h-8 w-auto brightness-0 invert object-contain" />
+                <span className="text-[10px] bg-[#C4922A]/20 border border-[#C4922A]/40 text-[#E8B84B] font-mono uppercase px-1.5 py-0.5 rounded-2xs font-bold">
+                  ADMIN
+                </span>
+              </Link>
+
+              <div className="flex items-center gap-1.5">
+                {/* Primary Action Button for Mobile */}
+                {mainSection === 'products' ? (
+                  <button
+                    type="button"
+                    onClick={handleOpenAdd}
+                    className="btn-gold h-7.5 px-2.5 text-[10.5px] tracking-wider uppercase font-bold flex items-center gap-1 shadow-sm shrink-0 whitespace-nowrap"
+                  >
+                    <Plus size={13} className="shrink-0" />
+                    <span>Piece</span>
+                  </button>
+                ) : mainSection === 'orders' ? (
+                  <Link
+                    to="/order-tracking"
+                    target="_blank"
+                    className="inline-flex items-center gap-1 px-2.5 h-7.5 text-[10.5px] uppercase tracking-wider font-bold bg-[#C4922A] text-white rounded-xs shadow-sm shrink-0 whitespace-nowrap"
+                  >
+                    <Truck size={12} className="shrink-0" />
+                    <span>Tracking</span>
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleOpenAddGallery}
+                    className="btn-gold h-7.5 px-2.5 text-[10.5px] tracking-wider uppercase font-bold flex items-center gap-1 shadow-sm shrink-0 whitespace-nowrap"
+                  >
+                    <Plus size={13} className="shrink-0" />
+                    <span>Look</span>
+                  </button>
+                )}
+
+                {/* Hamburger / Quick Actions Toggle */}
+                <button
+                  type="button"
+                  onClick={() => setMobileMenuOpen(prev => !prev)}
+                  className="w-7.5 h-7.5 rounded-xs border border-white/15 bg-black/40 flex items-center justify-center text-white/80 hover:text-white shrink-0 cursor-pointer"
+                  aria-label="Toggle Quick Tools Menu"
+                >
+                  {mobileMenuOpen ? <X size={15} /> : <Menu size={15} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Section Switcher Tabs (3 Full-Width Segments - Single Line Compact) */}
+            <div className="grid grid-cols-3 gap-1 bg-black/60 border border-white/15 p-1 rounded-sm">
+              <button
+                type="button"
+                onClick={() => {
+                  setMainSection('products');
+                  setMobileMenuOpen(false);
+                }}
+                className={`flex items-center justify-center gap-1 py-1 px-1 rounded-xs text-[10px] min-[390px]:text-[11px] font-bold tracking-tight min-[390px]:tracking-normal uppercase whitespace-nowrap transition-all cursor-pointer ${
                   mainSection === 'products'
                     ? 'bg-[#C4922A] text-white shadow-sm'
-                    : 'text-white/60 hover:text-white hover:bg-white/5'
+                    : 'text-white/60 hover:text-white'
                 }`}
               >
-                <Package size={14} className="shrink-0" />
-                <span className="whitespace-nowrap leading-none">Products ({products.length})</span>
+                <Package size={11} className="shrink-0" />
+                <span className="whitespace-nowrap">Items ({products.length})</span>
               </button>
 
               <button
                 type="button"
-                onClick={() => setMainSection('orders')}
-                className={`flex items-center justify-center gap-2 px-3.5 h-full rounded-xs text-xs font-semibold tracking-wider uppercase transition-all cursor-pointer relative whitespace-nowrap shrink-0 ${
+                onClick={() => {
+                  setMainSection('orders');
+                  setMobileMenuOpen(false);
+                }}
+                className={`flex items-center justify-center gap-1 py-1 px-1 rounded-xs text-[10px] min-[390px]:text-[11px] font-bold tracking-tight min-[390px]:tracking-normal uppercase whitespace-nowrap transition-all relative cursor-pointer ${
                   mainSection === 'orders'
                     ? 'bg-[#C4922A] text-white shadow-sm'
-                    : 'text-white/60 hover:text-white hover:bg-white/5'
+                    : 'text-white/60 hover:text-white'
                 }`}
               >
-                <ShoppingBag size={14} className="shrink-0" />
-                <span className="whitespace-nowrap leading-none">Orders ({orders.length})</span>
+                <ShoppingBag size={11} className="shrink-0" />
+                <span className="whitespace-nowrap">Orders ({orders.length})</span>
                 {orderStats.processing > 0 && (
-                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shrink-0" />
                 )}
               </button>
 
               <button
                 type="button"
-                onClick={() => setMainSection('gallery')}
-                className={`flex items-center justify-center gap-2 px-3.5 h-full rounded-xs text-xs font-semibold tracking-wider uppercase transition-all cursor-pointer relative whitespace-nowrap shrink-0 ${
+                onClick={() => {
+                  setMainSection('gallery');
+                  setMobileMenuOpen(false);
+                }}
+                className={`flex items-center justify-center gap-1 py-1 px-1 rounded-xs text-[10px] min-[390px]:text-[11px] font-bold tracking-tight min-[390px]:tracking-normal uppercase whitespace-nowrap transition-all cursor-pointer ${
                   mainSection === 'gallery'
                     ? 'bg-[#C4922A] text-white shadow-sm'
-                    : 'text-white/60 hover:text-white hover:bg-white/5'
+                    : 'text-white/60 hover:text-white'
                 }`}
               >
-                <ImageIcon size={14} className="shrink-0" />
-                <span className="whitespace-nowrap leading-none">Gallery ({galleryItems.length})</span>
+                <ImageIcon size={11} className="shrink-0" />
+                <span className="whitespace-nowrap">Gallery ({galleryItems.length})</span>
               </button>
             </div>
-          </div>
 
-          {/* Quick Action Tools & Admin Profile */}
-          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0 justify-end">
-            <Link
-              to="/"
-              target="_blank"
-              className="inline-flex items-center gap-1.5 px-3 h-9 text-[11px] uppercase tracking-wider text-white/70 hover:text-white border border-white/15 hover:border-[#C4922A] bg-black/40 hover:bg-white/5 rounded-xs transition-colors whitespace-nowrap shrink-0"
-              title="Open Live Boutique Store"
-            >
-              <ExternalLink size={13} className="shrink-0 text-white/60" />
-              <span className="whitespace-nowrap">Live Store</span>
-            </Link>
+            {/* Mobile Menu Dropdown Drawer */}
+            {mobileMenuOpen && (
+              <div className="pt-2 border-t border-white/10 grid grid-cols-2 gap-2 animate-fade-in">
+                <Link
+                  to="/"
+                  target="_blank"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-1.5 py-2 px-2.5 bg-black/60 border border-white/10 rounded-xs text-[11px] text-white/80 uppercase font-semibold"
+                >
+                  <ExternalLink size={13} className="text-[#C4922A]" />
+                  <span>Live Store</span>
+                </Link>
 
-            {/* Cloudinary Link Tool */}
-            <button
-              onClick={() => setCloudinaryTesterOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 h-9 text-[11px] uppercase tracking-wider text-[#E8B84B] bg-[#C4922A]/10 border border-[#C4922A]/40 rounded-xs hover:bg-[#C4922A]/20 transition-all cursor-pointer whitespace-nowrap shrink-0"
-              title="Open Cloudinary Image Link Helper"
-            >
-              <ImageIcon size={13} className="shrink-0 text-[#C4922A]" />
-              <span className="whitespace-nowrap">Cloudinary Tool</span>
-            </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setCloudinaryTesterOpen(true);
+                  }}
+                  className="flex items-center justify-center gap-1.5 py-2 px-2.5 bg-[#C4922A]/10 border border-[#C4922A]/40 rounded-xs text-[11px] text-[#E8B84B] uppercase font-semibold cursor-pointer"
+                >
+                  <ImageIcon size={13} className="text-[#C4922A]" />
+                  <span>Cloudinary</span>
+                </button>
 
-            {/* Cloud Sync Tool */}
-            <button
-              type="button"
-              onClick={() => {
-                setSyncMsg(null);
-                setFirebaseModalOpen(true);
-              }}
-              className="inline-flex items-center gap-1.5 px-3 h-9 text-[11px] uppercase tracking-wider text-white/80 hover:text-white border border-white/15 hover:border-[#C4922A] bg-black/40 hover:bg-white/5 rounded-xs transition-colors cursor-pointer whitespace-nowrap shrink-0"
-              title="Cloud Database Sync"
-            >
-              <Database size={13} className="shrink-0 text-[#C4922A]" />
-              <span className="whitespace-nowrap">Cloud Sync</span>
-            </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setSyncMsg(null);
+                    setFirebaseModalOpen(true);
+                  }}
+                  className="flex items-center justify-center gap-1.5 py-2 px-2.5 bg-black/60 border border-white/10 rounded-xs text-[11px] text-white/80 uppercase font-semibold cursor-pointer"
+                >
+                  <Database size={13} className="text-[#C4922A]" />
+                  <span>Cloud Sync</span>
+                </button>
 
-            {/* Tab-specific primary action button */}
-            {mainSection === 'products' ? (
-              <button
-                onClick={handleOpenAdd}
-                className="btn-gold h-9 px-3.5 text-xs tracking-wider uppercase font-bold flex items-center gap-1.5 cursor-pointer shadow-md whitespace-nowrap shrink-0"
-              >
-                <Plus size={15} className="shrink-0" />
-                <span className="whitespace-nowrap">Add New Piece</span>
-              </button>
-            ) : mainSection === 'orders' ? (
-              <Link
-                to="/order-tracking"
-                target="_blank"
-                className="inline-flex items-center gap-1.5 px-3.5 h-9 text-xs uppercase tracking-wider font-bold bg-[#C4922A] text-white border border-[#C4922A] rounded-xs hover:bg-[#d49f33] transition-all cursor-pointer shadow-md whitespace-nowrap shrink-0"
-              >
-                <Truck size={14} className="shrink-0" />
-                <span className="whitespace-nowrap">Tracking Portal</span>
-              </Link>
-            ) : (
-              <button
-                onClick={handleOpenAddGallery}
-                className="btn-gold h-9 px-3.5 text-xs tracking-wider uppercase font-bold flex items-center gap-1.5 cursor-pointer shadow-md whitespace-nowrap shrink-0"
-              >
-                <Plus size={15} className="shrink-0" />
-                <span className="whitespace-nowrap">Add Gallery Look</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="flex items-center justify-center gap-1.5 py-2 px-2.5 bg-red-950/40 border border-red-500/40 rounded-xs text-[11px] text-red-400 uppercase font-semibold cursor-pointer"
+                >
+                  <LogOut size={13} />
+                  <span>Sign Out</span>
+                </button>
+              </div>
             )}
-
-            {/* Balanced Sign Out Button */}
-            <button
-              onClick={handleLogout}
-              className="inline-flex items-center gap-1.5 px-3 h-9 text-[11px] font-semibold uppercase tracking-wider text-red-400/90 hover:text-red-300 bg-red-950/30 hover:bg-red-950/60 border border-red-500/30 hover:border-red-500/60 rounded-xs transition-all cursor-pointer whitespace-nowrap shrink-0 shadow-xs active:scale-95"
-              title="Sign Out of Admin Portal"
-            >
-              <LogOut size={13} className="shrink-0 text-red-400" />
-              <span className="whitespace-nowrap">Sign Out</span>
-            </button>
           </div>
-        </div>
-      </header>
+        </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 md:px-8 py-8 space-y-8">
+      <main className="flex-1 max-w-[1600px] w-full mx-auto px-3 sm:px-6 md:px-8 py-4 sm:py-8 space-y-5 sm:space-y-8">
         {/* =========================================================================
             SECTION 1: PRODUCTS CATALOG VIEW
             ========================================================================= */}
         {mainSection === 'products' && (
           <>
-            {/* KPI / Analytics Cards */}
-            <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 sm:gap-4">
+            {/* KPI / Analytics Cards - DESKTOP VIEW */}
+            <section className="hidden lg:grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 sm:gap-4">
               <div className="bg-[#121212] border border-white/10 p-4 rounded-sm">
                 <p className="text-[10px] text-white/40 tracking-[0.15em] uppercase font-mono mb-1">Total Catalog</p>
                 <p className="text-3xl font-extrabold text-white tracking-tight">{stats.total}</p>
@@ -639,11 +804,42 @@ export default function AdminDashboard() {
               </div>
             </section>
 
+            {/* KPI / Analytics Cards - MOBILE COMPACT VIEW */}
+            <section className="lg:hidden grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="bg-[#121212] border border-white/10 p-3 rounded-sm">
+                <p className="text-[9px] text-white/40 tracking-wider uppercase font-mono mb-0.5">Catalog</p>
+                <p className="text-2xl font-extrabold text-white leading-tight">{stats.total}</p>
+                <p className="text-[9px] text-[#C4922A] tracking-wider uppercase mt-0.5">Active Styles</p>
+              </div>
+
+              <div className="bg-[#121212] border border-white/10 p-3 rounded-sm">
+                <p className="text-[9px] text-white/40 tracking-wider uppercase font-mono mb-0.5">Stock Units</p>
+                <p className="text-2xl font-extrabold text-emerald-400 leading-tight">{stats.totalUnits}</p>
+                <p className="text-[9px] text-emerald-400/70 tracking-wider uppercase mt-0.5">In Warehouse</p>
+              </div>
+
+              <div className="bg-[#121212] border border-white/10 p-3 rounded-sm">
+                <p className="text-[9px] text-white/40 tracking-wider uppercase font-mono mb-0.5">Low Stock</p>
+                <p className={`text-2xl font-extrabold leading-tight ${stats.lowStockCount > 0 ? 'text-amber-400 animate-pulse' : 'text-white/60'}`}>
+                  {stats.lowStockCount}
+                </p>
+                <p className="text-[9px] text-amber-400/80 tracking-wider uppercase mt-0.5">≤ 5 Units</p>
+              </div>
+
+              <div className="bg-[#121212] border border-white/10 p-3 rounded-sm">
+                <p className="text-[9px] text-white/40 tracking-wider uppercase font-mono mb-0.5">Catalog Value</p>
+                <p className="text-base font-extrabold text-[#C4922A] truncate leading-tight mt-1">
+                  Rs. {stats.totalValue.toLocaleString()}
+                </p>
+                <p className="text-[9px] text-white/40 tracking-wider uppercase mt-0.5">Total Value</p>
+              </div>
+            </section>
+
             {/* Toolbar: Category Tabs & Search Bar */}
-            <section className="bg-[#121212] border border-white/10 p-4 rounded-sm space-y-4">
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <section className="bg-[#121212] border border-white/10 p-3.5 sm:p-4 rounded-sm space-y-3 sm:space-y-4">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
                 {/* Collection Filter Tabs */}
-                <div className="flex flex-wrap items-center gap-1.5">
+                <div className="flex overflow-x-auto tabs-scrollbar-mini items-center gap-1.5 pb-2 -mx-1 px-1 sm:mx-0 sm:px-0 sm:flex-wrap">
                   {[
                     { id: 'all', label: `All Items (${stats.total})` },
                     { id: 'women', label: `Women's (${stats.women})` },
@@ -741,7 +937,11 @@ export default function AdminDashboard() {
                   Add First Piece
                 </button>
               </div>
-            ) : viewMode === 'table' ? (
+            ) : (
+              <>
+                {/* Desktop View: Table or Grid */}
+                <div className="hidden md:block">
+                  {viewMode === 'table' ? (
               /* Table View */
               <div className="bg-[#121212] border border-white/10 rounded-sm overflow-hidden shadow-xl">
                 <div className="overflow-x-auto">
@@ -1043,18 +1243,155 @@ export default function AdminDashboard() {
                     </div>
                   );
                 })}
-              </div>
-            )}
+                </div>
+              )}
+            </div>
+
+            {/* Dedicated Mobile View: Touch-Friendly Product Cards */}
+            <div className="block md:hidden space-y-3">
+              {filteredProducts.map(product => {
+                const stockQty = typeof product.stockQuantity === 'number' ? product.stockQuantity : (product.inStock ? 10 : 0);
+                const isOOS = !product.inStock || stockQty <= 0;
+                const isLow = !isOOS && stockQty <= 5;
+
+                return (
+                  <div
+                    key={product.id}
+                    className="bg-[#141414] border border-white/10 rounded-sm p-3.5 space-y-3 shadow-md"
+                  >
+                    {/* Top: Image, ID, Category, Title, Price */}
+                    <div className="flex gap-3">
+                      <div className="w-16 h-20 rounded-xs overflow-hidden bg-black/40 border border-white/10 shrink-0 relative">
+                        <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                        {product.badge && (
+                          <span className="absolute top-1 left-1 text-[8px] uppercase tracking-wider font-bold px-1 py-0.5 rounded-2xs bg-black/85 text-[#E8B84B] border border-white/15">
+                            {product.badge}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="text-[10px] font-mono text-white/40">#{product.id}</span>
+                            <span className="text-[9px] uppercase font-bold px-2 py-0.5 rounded-2xs border border-white/10 bg-white/5 text-white/70">
+                              {product.category}
+                            </span>
+                          </div>
+                          <h4 className="font-semibold text-white text-sm truncate mt-0.5">{product.name}</h4>
+                          <p className="text-[10px] text-white/40 uppercase tracking-wider">{product.subcategory}</p>
+                        </div>
+                        <div className="flex items-baseline gap-2 mt-1">
+                          <span className="font-bold text-[#E8B84B] text-sm">Rs. {product.price.toLocaleString()}</span>
+                          {product.originalPrice && (
+                            <span className="text-[10px] text-white/30 line-through">Rs. {product.originalPrice.toLocaleString()}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Mid: Warehouse Stock & Stepper (Compact & Nicely Aligned) */}
+                    <div className="bg-[#0D0D0D] border border-white/10 rounded-xs px-2.5 py-1.5 flex items-center justify-between gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleStock(product.id, product.inStock, product.name)}
+                        className={`h-7 px-2 inline-flex items-center gap-1 text-[9.5px] xs:text-[10px] font-bold uppercase tracking-tight rounded-xs border cursor-pointer whitespace-nowrap shrink-0 transition-opacity hover:opacity-85 ${
+                          isOOS
+                            ? 'border-red-500/50 bg-red-500/15 text-red-400'
+                            : isLow
+                            ? 'border-amber-500/50 bg-amber-500/20 text-amber-300 animate-pulse'
+                            : 'border-emerald-500/50 bg-emerald-500/15 text-emerald-400'
+                        }`}
+                      >
+                        {isOOS ? (
+                          <>
+                            <XCircle size={10.5} className="shrink-0" />
+                            <span className="whitespace-nowrap">Out of Stock</span>
+                          </>
+                        ) : isLow ? (
+                          <>
+                            <AlertCircle size={10.5} className="shrink-0" />
+                            <span className="whitespace-nowrap">Low ({stockQty})</span>
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 size={10.5} className="shrink-0" />
+                            <span className="whitespace-nowrap">In Stock ({stockQty})</span>
+                          </>
+                        )}
+                      </button>
+
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => handleAdjustStock(product.id, -1, stockQty, product.name)}
+                          disabled={stockQty <= 0}
+                          className="w-6.5 h-6.5 xs:w-7 xs:h-7 flex items-center justify-center text-xs font-bold text-white bg-white/10 hover:bg-white/20 active:bg-white/30 rounded-xs disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer shrink-0 transition-colors"
+                          title="Decrease stock by 1"
+                        >
+                          -
+                        </button>
+                        <span className="text-xs font-mono font-bold text-white min-w-[22px] text-center">
+                          {stockQty}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleAdjustStock(product.id, 1, stockQty, product.name)}
+                          className="w-6.5 h-6.5 xs:w-7 xs:h-7 flex items-center justify-center text-xs font-bold text-black bg-[#C4922A] hover:bg-[#d49f33] active:bg-[#a6791e] rounded-xs cursor-pointer shrink-0 transition-colors font-bold"
+                          title="Increase stock by 1"
+                        >
+                          +
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleAdjustStock(product.id, 5, stockQty, product.name)}
+                          className="h-6.5 xs:h-7 px-1.5 flex items-center justify-center text-[10px] font-bold text-[#E8B84B] bg-[#C4922A]/15 border border-[#C4922A]/40 hover:bg-[#C4922A]/25 rounded-xs cursor-pointer shrink-0 whitespace-nowrap transition-colors"
+                          title="Add 5 units"
+                        >
+                          +5
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Bottom: Action Buttons */}
+                    <div className="grid grid-cols-3 gap-2 pt-1 border-t border-white/5">
+                      <Link
+                        to={`/product/${product.id}`}
+                        target="_blank"
+                        className="flex items-center justify-center gap-1.5 py-2 text-xs font-semibold text-white/70 bg-white/5 border border-white/10 rounded-xs active:bg-white/10"
+                      >
+                        <Eye size={13} /> View
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEdit(product)}
+                        className="flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-white bg-[#C4922A] hover:bg-[#d49f33] active:bg-[#a6791e] rounded-xs cursor-pointer shadow-sm"
+                      >
+                        <Edit2 size={13} /> Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteConfirmId(product.id)}
+                        className="flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-red-400 bg-red-950/40 border border-red-500/30 hover:bg-red-950/70 active:bg-red-950 rounded-xs cursor-pointer"
+                      >
+                        <Trash2 size={13} /> Delete
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </>
         )}
+      </>
+    )}
 
         {/* =========================================================================
             SECTION 2: ORDERS MANAGEMENT VIEW
             ========================================================================= */}
         {mainSection === 'orders' && (
-          <div className="space-y-8 animate-fade-in">
-            {/* Orders KPI Metrics */}
-            <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="space-y-5 sm:space-y-8 animate-fade-in">
+            {/* Orders KPI Metrics - DESKTOP */}
+            <section className="hidden sm:grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
               <div className="bg-[#121212] border border-white/10 p-4 rounded-sm">
                 <p className="text-[10px] text-white/40 tracking-[0.15em] uppercase font-mono mb-1">Total Orders</p>
                 <p className="text-3xl font-extrabold text-white tracking-tight">{orderStats.totalOrders}</p>
@@ -1099,11 +1436,43 @@ export default function AdminDashboard() {
               </div>
             </section>
 
+            {/* Orders KPI Metrics - MOBILE COMPACT */}
+            <section className="sm:hidden grid grid-cols-2 gap-2">
+              <div className="bg-[#121212] border border-white/10 p-3 rounded-sm">
+                <p className="text-[9px] text-white/40 tracking-wider uppercase font-mono mb-0.5">Total Orders</p>
+                <p className="text-2xl font-extrabold text-white leading-tight">{orderStats.totalOrders}</p>
+                <p className="text-[9px] text-[#C4922A] tracking-wider uppercase mt-0.5">Placed Orders</p>
+              </div>
+
+              <div className="bg-[#121212] border border-white/10 p-3 rounded-sm">
+                <p className="text-[9px] text-white/40 tracking-wider uppercase font-mono mb-0.5">Revenue</p>
+                <p className="text-base font-extrabold text-[#E8B84B] truncate leading-tight mt-1">
+                  Rs. {orderStats.totalRevenue.toLocaleString()}
+                </p>
+                <p className="text-[9px] text-emerald-400 tracking-wider uppercase mt-0.5">Active Sales</p>
+              </div>
+
+              <div className="bg-[#121212] border border-white/10 p-3 rounded-sm">
+                <p className="text-[9px] text-white/40 tracking-wider uppercase font-mono mb-0.5">Processing</p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-2xl font-extrabold text-amber-400 leading-tight">{orderStats.processing}</p>
+                  {orderStats.processing > 0 && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />}
+                </div>
+                <p className="text-[9px] text-white/40 tracking-wider uppercase mt-0.5">Needs Review</p>
+              </div>
+
+              <div className="bg-[#121212] border border-white/10 p-3 rounded-sm">
+                <p className="text-[9px] text-white/40 tracking-wider uppercase font-mono mb-0.5">In Transit</p>
+                <p className="text-2xl font-extrabold text-purple-400 leading-tight">{orderStats.shipped}</p>
+                <p className="text-[9px] text-white/40 tracking-wider uppercase mt-0.5">Dispatched</p>
+              </div>
+            </section>
+
             {/* Orders Toolbar: Filters & Search */}
-            <section className="bg-[#121212] border border-white/10 p-4 rounded-sm space-y-4">
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <section className="bg-[#121212] border border-white/10 p-3.5 sm:p-4 rounded-sm space-y-3 sm:space-y-4">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
                 {/* Status Filter Tabs */}
-                <div className="flex flex-wrap items-center gap-1.5">
+                <div className="flex overflow-x-auto tabs-scrollbar-mini items-center gap-1.5 pb-2 -mx-1 px-1 sm:mx-0 sm:px-0 sm:flex-wrap">
                   {[
                     { id: 'all', label: `All Orders (${orderStats.totalOrders})` },
                     { id: 'processing', label: `Processing (${orderStats.processing})` },
@@ -1174,7 +1543,10 @@ export default function AdminDashboard() {
                 </Link>
               </div>
             ) : (
-              <div className="bg-[#121212] border border-white/10 rounded-sm overflow-hidden shadow-xl">
+              <>
+                {/* Desktop View: Orders Table */}
+                <div className="hidden md:block">
+                  <div className="bg-[#121212] border border-white/10 rounded-sm overflow-hidden shadow-xl">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-sm">
                     <thead>
@@ -1394,7 +1766,163 @@ export default function AdminDashboard() {
                   </table>
                 </div>
               </div>
-            )}
+            </div>
+
+              {/* Dedicated Mobile View: Touch-Friendly Order Cards */}
+              <div className="block md:hidden space-y-3.5">
+                {filteredOrders.map(order => {
+                  const dateFormatted = new Date(order.createdAt).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  });
+                  const totalItemQty = order.items.reduce((sum, it) => sum + it.quantity, 0);
+
+                  return (
+                    <div
+                      key={order.id}
+                      className="bg-[#141414] border border-white/10 rounded-sm p-4 space-y-3 shadow-md"
+                    >
+                      {/* Top: Order ID, Date, Live Status */}
+                      <div className="flex items-start justify-between gap-2 border-b border-white/5 pb-2.5">
+                        <div>
+                          <span className="font-mono text-xs font-bold text-[#E8B84B] block">
+                            {order.id}
+                          </span>
+                          <span className="text-[10px] text-white/40 block mt-0.5">
+                            {dateFormatted}
+                          </span>
+                        </div>
+                        <div>
+                          {getStatusBadge(order.status)}
+                        </div>
+                      </div>
+
+                      {/* Customer & Call Button */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5">
+                            <User size={13} className="text-[#C4922A] shrink-0" />
+                            <span className="font-bold text-white text-xs">{order.customer.fullName}</span>
+                          </div>
+                          <a
+                            href={`tel:${order.customer.phone}`}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 rounded-xs text-[11px] font-mono font-bold"
+                          >
+                            <Phone size={11} /> {order.customer.phone}
+                          </a>
+                        </div>
+
+                        {/* Delivery Address */}
+                        <div className="bg-[#181818] border border-white/5 p-2 rounded-xs flex items-start gap-1.5">
+                          <MapPin size={12} className="text-[#E8B84B] shrink-0 mt-0.5" />
+                          <p className="text-[11px] text-white/80 leading-snug">
+                            {order.customer.address}, {order.customer.city}, {order.customer.province}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Items & Payment Amount */}
+                      <div className="flex items-center justify-between bg-black/40 border border-white/5 p-2.5 rounded-xs">
+                        <div className="flex items-center gap-2">
+                          {order.items[0]?.image && (
+                            <div className="w-10 h-12 bg-black/60 rounded-2xs overflow-hidden shrink-0 border border-white/10">
+                              <img src={order.items[0].image} alt="" className="w-full h-full object-cover" />
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-xs font-bold text-white line-clamp-1">{order.items[0]?.name || 'Order Item'}</p>
+                            <p className="text-[10px] text-white/40">{totalItemQty} {totalItemQty === 1 ? 'piece' : 'pieces'}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-[#E8B84B] text-sm">Rs. {order.total.toLocaleString()}</p>
+                          <span className="text-[9px] uppercase tracking-wider font-semibold px-1.5 py-0.5 bg-white/10 rounded-xs text-white/70">
+                            {order.paymentMethod === 'cod' ? 'COD' : order.paymentMethod === 'card' ? 'CARD' : 'BANK'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* If Bank Transfer and slip is attached */}
+                      {order.paymentMethod === 'bank_transfer' && (
+                        order.bankReceipt ? (
+                          <button
+                            type="button"
+                            onClick={() => setPreviewSlip({ url: order.bankReceipt!, name: order.bankReceiptName, orderId: order.id })}
+                            className="w-full py-2 bg-[#C4922A]/15 hover:bg-[#C4922A]/25 border border-[#C4922A]/40 text-[#E8B84B] rounded-xs text-xs font-bold uppercase flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                          >
+                            <Check size={12} className="text-emerald-400" /> View Bank Deposit Slip <Eye size={12} />
+                          </button>
+                        ) : (
+                          <div className="text-center py-1 text-[11px] text-amber-400/80 bg-amber-950/20 border border-amber-500/20 rounded-xs">
+                            No deposit slip uploaded yet
+                          </div>
+                        )
+                      )}
+
+                      {/* Quick Status Select on Mobile */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-white/50 uppercase tracking-wider font-mono shrink-0">Status:</span>
+                        <select
+                          value={order.status}
+                          onChange={e => handleStatusChange(order.id, e.target.value as OrderStatus)}
+                          className="flex-1 bg-[#181818] border border-white/20 text-white text-xs px-2.5 py-2 rounded-xs outline-none focus:border-[#C4922A] cursor-pointer"
+                        >
+                          <option value="processing">Processing</option>
+                          <option value="confirmed">Confirmed</option>
+                          <option value="shipped">Dispatched</option>
+                          <option value="out_for_delivery">Out For Delivery</option>
+                          <option value="delivered">Delivered</option>
+                          <option value="cancelled">Cancelled</option>
+                        </select>
+                      </div>
+
+                      {/* Mobile Action Buttons */}
+                      <div className="grid grid-cols-4 gap-1.5 pt-1 border-t border-white/5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedOrder(order);
+                            setOrderDetailModalOpen(true);
+                          }}
+                          className="flex items-center justify-center gap-1 py-2 text-xs font-semibold text-white/90 bg-white/10 hover:bg-white/20 rounded-xs cursor-pointer"
+                          title="View Details"
+                        >
+                          <Eye size={13} /> <span className="text-[11px]">Details</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handlePrintInvoice(order)}
+                          className="flex items-center justify-center gap-1 py-2 text-xs font-bold text-[#E8B84B] bg-[#C4922A]/20 border border-[#C4922A]/40 rounded-xs cursor-pointer"
+                          title="Print"
+                        >
+                          <Printer size={13} /> <span className="text-[11px]">Print</span>
+                        </button>
+                        <Link
+                          to={`/order-tracking?id=${order.id}`}
+                          target="_blank"
+                          className="flex items-center justify-center gap-1 py-2 text-xs font-semibold text-white/70 bg-white/5 border border-white/10 rounded-xs"
+                          title="Track"
+                        >
+                          <Truck size={13} /> <span className="text-[11px]">Track</span>
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteOrderId(order.id)}
+                          className="flex items-center justify-center gap-1 py-2 text-xs font-bold text-red-400 bg-red-950/40 border border-red-500/30 rounded-xs cursor-pointer"
+                          title="Delete"
+                        >
+                          <Trash2 size={13} /> <span className="text-[11px]">Del</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
           </div>
         )}
 
@@ -1402,9 +1930,9 @@ export default function AdminDashboard() {
             SECTION 3: GALLERY MANAGEMENT VIEW
             ========================================================================= */}
         {mainSection === 'gallery' && (
-          <div className="space-y-8 animate-fade-in">
-            {/* Gallery KPI Metrics */}
-            <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+          <div className="space-y-5 sm:space-y-8 animate-fade-in">
+            {/* Gallery KPI Metrics - DESKTOP */}
+            <section className="hidden sm:grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
               <div className="bg-[#121212] border border-white/10 p-4 rounded-sm">
                 <p className="text-[10px] text-white/40 tracking-[0.15em] uppercase font-mono mb-1">Total Looks</p>
                 <p className="text-3xl font-extrabold text-white tracking-tight">{galleryStats.total}</p>
@@ -1450,11 +1978,38 @@ export default function AdminDashboard() {
               </div>
             </section>
 
+            {/* Gallery KPI Metrics - MOBILE COMPACT */}
+            <section className="sm:hidden grid grid-cols-2 gap-2">
+              <div className="bg-[#121212] border border-white/10 p-3 rounded-sm">
+                <p className="text-[9px] text-white/40 tracking-wider uppercase font-mono mb-0.5">Total Looks</p>
+                <p className="text-2xl font-extrabold text-white leading-tight">{galleryStats.total}</p>
+                <p className="text-[9px] text-[#C4922A] tracking-wider uppercase mt-0.5">Live Photography</p>
+              </div>
+
+              <div className="bg-[#121212] border border-white/10 p-3 rounded-sm">
+                <p className="text-[9px] text-white/40 tracking-wider uppercase font-mono mb-0.5">Campaigns</p>
+                <p className="text-2xl font-extrabold text-[#E8B84B] leading-tight">{galleryStats.campaigns}</p>
+                <p className="text-[9px] text-white/40 tracking-wider uppercase mt-0.5">Lookbooks</p>
+              </div>
+
+              <div className="bg-[#121212] border border-white/10 p-3 rounded-sm">
+                <p className="text-[9px] text-white/40 tracking-wider uppercase font-mono mb-0.5">Artisan</p>
+                <p className="text-2xl font-extrabold text-blue-400 leading-tight">{galleryStats.craft}</p>
+                <p className="text-[9px] text-blue-400/70 tracking-wider uppercase mt-0.5">Handloom &amp; Batik</p>
+              </div>
+
+              <div className="bg-[#121212] border border-white/10 p-3 rounded-sm">
+                <p className="text-[9px] text-white/40 tracking-wider uppercase font-mono mb-0.5">Resortwear</p>
+                <p className="text-2xl font-extrabold text-emerald-400 leading-tight">{galleryStats.resortwear}</p>
+                <p className="text-[9px] text-emerald-400/70 tracking-wider uppercase mt-0.5">Island Wear</p>
+              </div>
+            </section>
+
             {/* Gallery Toolbar: Search, Filters & Action Buttons */}
-            <section className="bg-[#121212] border border-white/10 p-4 rounded-sm space-y-4">
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <section className="bg-[#121212] border border-white/10 p-3.5 sm:p-4 rounded-sm space-y-3 sm:space-y-4">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
                 {/* Category Filter Pills */}
-                <div className="flex flex-wrap items-center gap-1.5">
+                <div className="flex overflow-x-auto tabs-scrollbar-mini items-center gap-1.5 pb-2 -mx-1 px-1 sm:mx-0 sm:px-0 sm:flex-wrap">
                   {galleryCategories.map(cat => (
                     <button
                       key={cat.id}
@@ -1470,43 +2025,44 @@ export default function AdminDashboard() {
                   ))}
                 </div>
 
-                {/* Right side controls: View Mode toggle & Reset Defaults */}
-                <div className="flex items-center gap-2 self-start lg:self-auto">
-                  <div className="flex items-center bg-black/40 border border-white/10 rounded-xs p-0.5">
+                {/* Right side controls: View Mode toggle, Reset Defaults, Add Look (Single Line & Compact) */}
+                <div className="flex items-center gap-1.5 sm:gap-2 self-start lg:self-auto">
+                  <div className="flex items-center bg-black/40 border border-white/10 rounded-xs p-0.5 shrink-0">
                     <button
                       onClick={() => setGalleryViewMode('grid')}
-                      className={`p-1.5 rounded-xs transition-colors cursor-pointer ${
+                      className={`w-7 h-7 flex items-center justify-center rounded-xs transition-colors cursor-pointer ${
                         galleryViewMode === 'grid' ? 'bg-[#C4922A] text-white' : 'text-white/40 hover:text-white'
                       }`}
                       title="Grid View"
                     >
-                      <LayoutGrid size={15} />
+                      <LayoutGrid size={13} />
                     </button>
                     <button
                       onClick={() => setGalleryViewMode('table')}
-                      className={`p-1.5 rounded-xs transition-colors cursor-pointer ${
+                      className={`w-7 h-7 flex items-center justify-center rounded-xs transition-colors cursor-pointer ${
                         galleryViewMode === 'table' ? 'bg-[#C4922A] text-white' : 'text-white/40 hover:text-white'
                       }`}
                       title="Table View"
                     >
-                      <List size={15} />
+                      <List size={13} />
                     </button>
                   </div>
 
                   <button
                     onClick={() => setResetGalleryConfirmOpen(true)}
-                    className="px-3 py-1.5 border border-white/10 hover:border-white/20 bg-black/30 text-white/60 hover:text-white rounded-xs text-[11px] font-medium transition-colors cursor-pointer flex items-center gap-1.5"
+                    className="h-7.5 px-2.5 border border-white/10 hover:border-white/20 bg-black/40 text-white/70 hover:text-white rounded-xs text-[10px] sm:text-[11px] font-medium transition-colors cursor-pointer flex items-center gap-1 shrink-0 whitespace-nowrap"
                     title="Reset gallery photos to default 9 items"
                   >
-                    <RefreshCw size={12} />
-                    <span>Reset Defaults</span>
+                    <RefreshCw size={11} className="shrink-0" />
+                    <span className="whitespace-nowrap">Reset Defaults</span>
                   </button>
 
                   <button
                     onClick={handleOpenAddGallery}
-                    className="btn-gold py-1.5 px-3.5 text-xs uppercase tracking-wider font-bold rounded-xs flex items-center gap-1.5 cursor-pointer shadow-md"
+                    className="h-7.5 px-2.5 sm:px-3 bg-[#C4922A] hover:bg-[#d49f33] active:bg-[#a6791e] text-white text-[10.5px] sm:text-xs uppercase tracking-wider font-bold rounded-xs flex items-center justify-center gap-1 cursor-pointer shadow-sm shrink-0 whitespace-nowrap transition-colors"
                   >
-                    <Plus size={14} /> Add Look
+                    <Plus size={13} className="shrink-0" />
+                    <span className="whitespace-nowrap">Add Look</span>
                   </button>
                 </div>
               </div>
@@ -1644,22 +2200,29 @@ export default function AdminDashboard() {
                     {/* Bottom Action Footer */}
                     <div className="p-3 bg-[#161616] border-t border-white/5 flex items-center justify-between gap-2">
                       <span className="text-[10px] text-white/40 font-mono">ID #{item.id}</span>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setPreviewGalleryItem(item)}
+                          className="px-2 py-1 text-[11px] font-semibold text-white/70 bg-white/5 hover:bg-white/10 rounded-xs transition-colors cursor-pointer flex items-center gap-1 sm:hidden"
+                        >
+                          <ZoomIn size={12} /> View
+                        </button>
                         <button
                           type="button"
                           onClick={() => handleOpenEditGallery(item)}
-                          className="p-1.5 text-white/60 hover:text-white hover:bg-white/10 rounded-xs transition-colors cursor-pointer"
+                          className="px-2 py-1 text-[11px] font-bold text-[#E8B84B] bg-[#C4922A]/15 hover:bg-[#C4922A]/25 border border-[#C4922A]/40 rounded-xs transition-colors cursor-pointer flex items-center gap-1"
                           title="Edit"
                         >
-                          <Edit2 size={13} />
+                          <Edit2 size={12} /> <span className="sm:hidden">Edit</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => setDeleteGalleryId(item.id)}
-                          className="p-1.5 text-red-400/60 hover:text-red-400 hover:bg-red-400/10 rounded-xs transition-colors cursor-pointer"
+                          className="px-2 py-1 text-[11px] font-bold text-red-400 bg-red-950/40 hover:bg-red-950/70 border border-red-500/30 rounded-xs transition-colors cursor-pointer flex items-center gap-1"
                           title="Delete"
                         >
-                          <Trash2 size={13} />
+                          <Trash2 size={12} /> <span className="sm:hidden">Delete</span>
                         </button>
                       </div>
                     </div>
@@ -1754,14 +2317,39 @@ export default function AdminDashboard() {
         )}
       </main>
 
+      {/* Mobile Floating Action Button (Small + icon only) */}
+      <div className="fixed bottom-4 right-4 z-40 md:hidden">
+        {mainSection === 'products' ? (
+          <button
+            type="button"
+            onClick={handleOpenAdd}
+            className="w-10 h-10 rounded-full flex items-center justify-center bg-[#C4922A] text-black shadow-lg hover:bg-[#d49f33] active:scale-95 transition-all border border-amber-300/40 cursor-pointer"
+            aria-label="Add Piece"
+            title="Add Piece"
+          >
+            <Plus size={20} strokeWidth={2.5} />
+          </button>
+        ) : mainSection === 'gallery' ? (
+          <button
+            type="button"
+            onClick={handleOpenAddGallery}
+            className="w-10 h-10 rounded-full flex items-center justify-center bg-[#C4922A] text-black shadow-lg hover:bg-[#d49f33] active:scale-95 transition-all border border-amber-300/40 cursor-pointer"
+            aria-label="Add Look"
+            title="Add Look"
+          >
+            <Plus size={20} strokeWidth={2.5} />
+          </button>
+        ) : null}
+      </div>
+
       {/* =========================================================================
           ORDER DETAILS & INVOICE MODAL
           ========================================================================= */}
       {orderDetailModalOpen && selectedOrder && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto animate-fade-in">
-          <div className="bg-[#121212] border border-white/20 rounded-md max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 sm:p-8 space-y-6 my-8">
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm overflow-y-auto animate-fade-in">
+          <div className="bg-[#121212] border border-white/20 rounded-md max-w-3xl w-full max-h-[92vh] overflow-y-auto shadow-2xl p-4 sm:p-8 space-y-5 sm:space-y-6 my-4 sm:my-8">
             {/* Modal Header */}
-            <div className="flex items-start justify-between border-b border-white/10 pb-4">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 border-b border-white/10 pb-4">
               <div>
                 <div className="flex items-center gap-3">
                   <h3 className="text-xl font-extrabold text-white font-mono">{selectedOrder.id}</h3>
@@ -1771,7 +2359,7 @@ export default function AdminDashboard() {
                   Placed on {new Date(selectedOrder.createdAt).toLocaleString()} · Tracking #{selectedOrder.trackingNumber}
                 </p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
                 <button
                   type="button"
                   onClick={() => handlePrintInvoice(selectedOrder)}
@@ -2356,14 +2944,19 @@ export default function AdminDashboard() {
       {/* Cloudinary Link Helper Modal */}
       {cloudinaryTesterOpen && (
         <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-scale-in">
-          <div className="bg-[#121212] border border-[#C4922A]/40 rounded-md p-6 max-w-lg w-full shadow-2xl space-y-5">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <div className="flex items-center gap-2 text-[#C4922A]">
-                <ImageIcon size={18} />
-                <h3 className="text-lg font-bold text-white">Cloudinary Image Link Tester</h3>
+          <div className="bg-[#121212] border border-[#C4922A]/40 rounded-md p-5 sm:p-6 max-w-lg w-full shadow-2xl space-y-4 sm:space-y-5">
+            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2 text-[#C4922A] min-w-0">
+                <ImageIcon size={18} className="shrink-0" />
+                <h3 className="text-base sm:text-lg font-bold text-white truncate">Cloudinary Image Link Tester</h3>
               </div>
-              <button onClick={() => setCloudinaryTesterOpen(false)} className="text-white/40 hover:text-white cursor-pointer">
-                ✕
+              <button
+                type="button"
+                onClick={() => setCloudinaryTesterOpen(false)}
+                className="w-7 h-7 rounded-full border border-white/10 hover:border-white/30 flex items-center justify-center text-white/50 hover:text-white shrink-0 cursor-pointer transition-colors"
+                aria-label="Close"
+              >
+                <X size={15} />
               </button>
             </div>
 
@@ -2377,7 +2970,7 @@ export default function AdminDashboard() {
                 value={testedUrl}
                 onChange={e => setTestedUrl(e.target.value)}
                 placeholder="https://res.cloudinary.com/your-cloud/image/upload/..."
-                className="w-full bg-[#181818] border border-white/15 px-4 py-3 text-xs text-white placeholder-white/30 outline-none focus:border-[#C4922A] rounded-xs"
+                className="w-full bg-[#181818] border border-white/15 px-3.5 py-2.5 text-xs text-white placeholder-white/30 outline-none focus:border-[#C4922A] rounded-xs"
               />
 
               {testedUrl && (
@@ -2397,7 +2990,7 @@ export default function AdminDashboard() {
                       setCloudinaryCopied(true);
                       setTimeout(() => setCloudinaryCopied(false), 2000);
                     }}
-                    className="btn-gold py-1.5 px-4 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                    className="h-8.5 px-4 bg-[#C4922A] hover:bg-[#d49f33] active:bg-[#a6791e] text-white text-xs font-bold uppercase tracking-wider rounded-xs flex items-center gap-1.5 cursor-pointer shadow-sm transition-colors"
                   >
                     {cloudinaryCopied ? <><Check size={13} /> Link Copied</> : 'Copy Valid Link'}
                   </button>
@@ -2405,10 +2998,11 @@ export default function AdminDashboard() {
               )}
             </div>
 
-            <div className="pt-2 border-t border-white/10 flex justify-end">
+            <div className="pt-3 border-t border-white/10 flex items-center justify-end">
               <button
+                type="button"
                 onClick={() => setCloudinaryTesterOpen(false)}
-                className="btn-outline-gold py-2 px-5 text-xs cursor-pointer"
+                className="w-full sm:w-auto h-9 px-6 border border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/10 text-white/80 hover:text-white text-xs uppercase tracking-wider font-semibold rounded-xs transition-colors cursor-pointer flex items-center justify-center"
               >
                 Close
               </button>
@@ -2417,42 +3011,43 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Cloud Database Synchronization Modal (Client-Ready) */}
+      {/* Cloud Database Synchronization Modal (Client-Ready & Balanced Alignment) */}
       {firebaseModalOpen && (
-        <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-scale-in">
-          <div className="bg-[#121212] border border-white/20 rounded-md p-6 max-w-md w-full shadow-2xl space-y-5">
+        <div className="fixed inset-0 z-[130] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-scale-in">
+          <div className="bg-[#121212] border border-white/20 rounded-md p-4 sm:p-6 max-w-sm sm:max-w-md w-full shadow-2xl space-y-4">
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <div className="flex items-center gap-2.5 text-[#C4922A]">
-                <Database size={18} />
-                <div>
-                  <h3 className="text-base font-bold text-white tracking-wide">Cloud Synchronization</h3>
-                  <p className="text-[10px] text-white/50">Real-Time Store Database</p>
+            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2 text-[#C4922A] min-w-0">
+                <Database size={18} className="shrink-0" />
+                <div className="min-w-0">
+                  <h3 className="text-sm sm:text-base font-bold text-white tracking-wide truncate">Cloud Synchronization</h3>
+                  <p className="text-[10px] text-white/50 truncate">Real-Time Store Database</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setFirebaseModalOpen(false)}
-                className="w-7 h-7 rounded-full flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 cursor-pointer transition-colors"
+                className="w-7 h-7 rounded-full border border-white/10 hover:border-white/30 flex items-center justify-center text-white/50 hover:text-white shrink-0 cursor-pointer transition-colors"
+                aria-label="Close"
               >
-                ✕
+                <X size={15} />
               </button>
             </div>
 
             {/* Status Card */}
-            <div className="bg-white/5 border border-white/10 p-4 rounded-xs space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-white/70 font-semibold">Database Status:</span>
-                <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/70 border border-emerald-500/40 px-2.5 py-0.5 rounded-xs flex items-center gap-1.5 font-bold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live &amp; Connected
+            <div className="bg-white/5 border border-white/10 p-3 sm:p-3.5 rounded-xs space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[11px] text-white/70 font-semibold">Database Status:</span>
+                <span className="text-[10px] text-emerald-400 bg-emerald-950/70 border border-emerald-500/40 px-2 py-0.5 rounded-xs flex items-center gap-1.5 font-semibold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" /> Live &amp; Connected
                 </span>
               </div>
-              <p className="text-xs text-white/60 leading-relaxed">
+              <p className="text-[11px] text-white/60 leading-relaxed">
                 Your boutique catalog is synchronized in real-time. Any piece added, edited, or updated is immediately broadcasted across all customer devices and mobile phones.
               </p>
-              <div className="text-[11px] text-white/50 pt-2 border-t border-white/5 flex items-center justify-between">
-                <span>Active Pieces: <strong className="text-[#C4922A] font-mono">{products.length} Products</strong></span>
-                <span>Gallery Looks: <strong className="text-[#C4922A] font-mono">{galleryItems.length} Looks</strong></span>
+              <div className="text-[10.5px] text-white/50 pt-2 border-t border-white/5 flex items-center justify-between">
+                <span>Active Pieces: <strong className="text-[#C4922A] font-semibold">{products.length} Products</strong></span>
+                <span>Gallery Looks: <strong className="text-[#C4922A] font-semibold">{galleryItems.length} Looks</strong></span>
               </div>
             </div>
 
@@ -2462,14 +3057,14 @@ export default function AdminDashboard() {
                 type="button"
                 onClick={handleManualSync}
                 disabled={isSyncing || isGallerySyncing}
-                className="w-full btn-gold py-2.5 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
+                className="w-full h-10 px-4 bg-[#C4922A] hover:bg-[#d49f33] active:bg-[#a6791e] text-white text-xs font-bold uppercase tracking-wider rounded-xs flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50 transition-colors"
               >
                 {isSyncing || isGallerySyncing ? (
-                  <><RefreshCw size={14} className="animate-spin text-black" /> Synchronizing Across Devices...</>
+                  <><RefreshCw size={13} className="animate-spin text-white shrink-0" /><span>Syncing Across Devices...</span></>
                 ) : manualSyncDone ? (
-                  <><Check size={14} /> Catalog Fully Synced!</>
+                  <><Check size={13} className="shrink-0" /><span>Catalog Fully Synced!</span></>
                 ) : (
-                  <><RefreshCw size={14} /> Push All Catalog Data to Cloud</>
+                  <><RefreshCw size={13} className="shrink-0" /><span>Push Catalog to Cloud</span></>
                 )}
               </button>
 
@@ -2492,11 +3087,11 @@ export default function AdminDashboard() {
             </div>
 
             {/* Modal Footer */}
-            <div className="pt-2 border-t border-white/10 flex justify-end">
+            <div className="pt-3 border-t border-white/10 flex items-center justify-end">
               <button
                 type="button"
                 onClick={() => setFirebaseModalOpen(false)}
-                className="btn-outline-gold py-2 px-5 text-xs font-bold cursor-pointer"
+                className="w-full sm:w-auto h-9 px-6 border border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/10 text-white/80 hover:text-white text-xs uppercase tracking-wider font-semibold rounded-xs transition-colors cursor-pointer flex items-center justify-center"
               >
                 Close
               </button>

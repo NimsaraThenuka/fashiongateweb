@@ -243,28 +243,28 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
   };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/80 backdrop-blur-sm animate-scale-in">
-      <div className="relative w-full max-w-3xl max-h-[90vh] flex flex-col bg-[#0F0F0F] text-white border border-[#C4922A]/30 rounded-md shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-2.5 sm:p-6 overflow-y-auto overflow-x-hidden bg-black/80 backdrop-blur-sm animate-scale-in">
+      <div className="relative w-full max-w-full sm:max-w-3xl max-h-[94vh] flex flex-col bg-[#0F0F0F] text-white border border-[#C4922A]/30 rounded-md shadow-2xl overflow-hidden min-w-0">
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-white/10 bg-[#0A0A0A]">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-5 border-b border-white/10 bg-[#0A0A0A] shrink-0">
           <div>
             <p className="text-[10px] text-[#C4922A] tracking-[0.2em] uppercase font-mono">
               {product ? 'Product Editor' : 'Create New Piece'}
             </p>
-            <h3 className="text-2xl font-bold text-white">
+            <h3 className="text-lg sm:text-2xl font-bold text-white truncate max-w-[220px] sm:max-w-none">
               {product ? `Edit "${product.name}"` : 'Add New Product'}
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-full border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:border-[#C4922A] hover:bg-white/5 transition-all cursor-pointer"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:border-[#C4922A] hover:bg-white/5 transition-all cursor-pointer shrink-0"
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
 
         {/* Modal Body */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto overflow-x-hidden p-3.5 sm:p-6 space-y-4 sm:space-y-6 min-w-0 max-w-full">
           {/* Basic Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
@@ -370,7 +370,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
                 value={mainImage}
                 onChange={e => setMainImage(e.target.value)}
                 placeholder="https://res.cloudinary.com/... or https://images.unsplash.com/..."
-                className={`flex-1 w-full bg-[#181818] border ${errors.mainImage ? 'border-red-500' : 'border-white/15'} px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-[#C4922A] transition-colors rounded-xs`}
+                className={`flex-1 w-full min-w-0 bg-[#181818] border ${errors.mainImage ? 'border-red-500' : 'border-white/15'} px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-white/30 outline-none focus:border-[#C4922A] transition-colors rounded-xs`}
               />
               {mainImage && (
                 <div className="w-16 h-20 bg-black/40 border border-[#C4922A]/50 rounded-xs overflow-hidden shrink-0">
@@ -382,24 +382,24 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
           </div>
 
           {/* Additional Gallery Images */}
-          <div className="border border-white/10 p-4 bg-[#141414] rounded-sm">
+          <div className="border border-white/10 p-3 sm:p-4 bg-[#141414] rounded-sm">
             <label className="block text-[11px] tracking-[0.1em] uppercase text-white/80 font-semibold mb-2">
               Additional Gallery Images (Cloudinary Links)
             </label>
-            <div className="flex gap-2 mb-3">
+            <div className="flex items-center gap-2 mb-3">
               <input
                 type="url"
                 value={newGalleryUrl}
                 onChange={e => setNewGalleryUrl(e.target.value)}
                 placeholder="Paste extra image link..."
-                className="flex-1 bg-[#181818] border border-white/15 px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-[#C4922A] rounded-xs"
+                className="flex-1 min-w-0 bg-[#181818] border border-white/15 px-3 py-2 text-xs sm:text-sm text-white placeholder-white/30 outline-none focus:border-[#C4922A] rounded-xs"
               />
               <button
                 type="button"
                 onClick={handleAddGalleryImage}
-                className="btn-gold py-2 px-4 text-xs font-semibold flex items-center gap-1.5 shrink-0 cursor-pointer"
+                className="h-9 px-3 sm:px-4 bg-[#C4922A] hover:bg-[#d49f33] active:bg-[#a6791e] text-white text-[11px] font-bold uppercase tracking-wider flex items-center justify-center gap-1 shrink-0 rounded-xs cursor-pointer shadow-sm whitespace-nowrap transition-colors"
               >
-                <Plus size={14} /> Add
+                <Plus size={13} className="shrink-0" /> Add
               </button>
             </div>
 
@@ -437,40 +437,40 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
                 </div>
 
                 {/* Quick Bundles */}
-                <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+                <div className="flex flex-wrap items-center gap-1 shrink-0">
                   <span className="text-[9px] text-white/40 uppercase tracking-wider mr-1">Presets:</span>
                   <button
                     type="button"
                     onClick={() => applyQuickSizes('standard')}
-                    className="text-[9px] px-2 py-0.5 bg-white/5 border border-white/15 hover:border-[#C4922A] rounded-xs text-white/70 hover:text-white cursor-pointer transition-colors"
+                    className="text-[8.5px] xs:text-[9px] px-1.5 py-0.5 bg-white/5 border border-white/15 hover:border-[#C4922A] rounded-xs text-white/70 hover:text-white cursor-pointer transition-colors shrink-0"
                   >
                     S, M, L, XL
                   </button>
                   <button
                     type="button"
                     onClick={() => applyQuickSizes('all-adult')}
-                    className="text-[9px] px-2 py-0.5 bg-white/5 border border-white/15 hover:border-[#C4922A] rounded-xs text-white/70 hover:text-white cursor-pointer transition-colors"
+                    className="text-[8.5px] xs:text-[9px] px-1.5 py-0.5 bg-white/5 border border-white/15 hover:border-[#C4922A] rounded-xs text-white/70 hover:text-white cursor-pointer transition-colors shrink-0"
                   >
                     XS – XXL
                   </button>
                   <button
                     type="button"
                     onClick={() => applyQuickSizes('freesize')}
-                    className="text-[9px] px-2 py-0.5 bg-white/5 border border-white/15 hover:border-[#C4922A] rounded-xs text-white/70 hover:text-white cursor-pointer transition-colors"
+                    className="text-[8.5px] xs:text-[9px] px-1.5 py-0.5 bg-white/5 border border-white/15 hover:border-[#C4922A] rounded-xs text-white/70 hover:text-white cursor-pointer transition-colors shrink-0"
                   >
                     Free Size
                   </button>
                   <button
                     type="button"
                     onClick={() => applyQuickSizes('kids')}
-                    className="text-[9px] px-2 py-0.5 bg-white/5 border border-white/15 hover:border-[#C4922A] rounded-xs text-white/70 hover:text-white cursor-pointer transition-colors"
+                    className="text-[8.5px] xs:text-[9px] px-1.5 py-0.5 bg-white/5 border border-white/15 hover:border-[#C4922A] rounded-xs text-white/70 hover:text-white cursor-pointer transition-colors shrink-0"
                   >
                     Kids' Ages
                   </button>
                   <button
                     type="button"
                     onClick={() => applyQuickSizes('clear')}
-                    className="text-[9px] px-2 py-0.5 bg-red-950/40 border border-red-500/30 hover:border-red-400 rounded-xs text-red-300 cursor-pointer transition-colors"
+                    className="text-[8.5px] xs:text-[9px] px-1.5 py-0.5 bg-red-950/40 border border-red-500/30 hover:border-red-400 rounded-xs text-red-300 cursor-pointer transition-colors shrink-0"
                   >
                     Clear All
                   </button>
@@ -482,7 +482,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
                 <p className="text-[10px] text-white/60 uppercase tracking-wider font-semibold mb-2">
                   Click to Toggle Sizes:
                 </p>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {SIZE_PRESETS.map(({ label }) => {
                     const isSelected = sizes.includes(label);
                     return (
@@ -490,13 +490,13 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
                         type="button"
                         key={label}
                         onClick={() => toggleSize(label)}
-                        className={`px-3 py-1.5 text-xs font-semibold rounded-xs border transition-all cursor-pointer flex items-center gap-1.5 ${
+                        className={`px-2.5 py-1 text-[11px] sm:text-xs font-semibold rounded-xs border transition-all cursor-pointer flex items-center gap-1 shrink-0 ${
                           isSelected
-                            ? 'bg-[#C4922A] text-white border-[#C4922A] shadow-[0_2px_8px_rgba(196,146,42,0.4)] font-bold scale-102'
+                            ? 'bg-[#C4922A] text-white border-[#C4922A] shadow-sm font-bold'
                             : 'bg-[#181818] border-white/15 text-white/70 hover:border-white/40 hover:text-white'
                         }`}
                       >
-                        {isSelected && <Check size={12} className="stroke-[3]" />}
+                        {isSelected && <Check size={11} className="stroke-[3] shrink-0" />}
                         {label}
                       </button>
                     );
@@ -516,10 +516,10 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
                     sizes.map(s => (
                       <span
                         key={s}
-                        className="inline-flex items-center gap-1.5 bg-[#C4922A]/20 border border-[#C4922A]/60 px-2.5 py-1 text-xs text-white rounded-xs font-medium"
+                        className="inline-flex items-center gap-1.5 bg-[#C4922A]/20 border border-[#C4922A]/60 px-2 py-0.5 text-xs text-white rounded-xs font-medium shrink-0"
                       >
                         {s}
-                        <X size={12} className="cursor-pointer hover:text-red-400" onClick={() => handleRemoveSize(s)} />
+                        <X size={12} className="cursor-pointer hover:text-red-400 shrink-0" onClick={() => handleRemoveSize(s)} />
                       </span>
                     ))
                   )}
@@ -539,15 +539,15 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
                       handleAddCustomSize();
                     }
                   }}
-                  placeholder="Type a custom size (e.g. UK 10, EU 40, 42)..."
-                  className="flex-1 bg-[#181818] border border-white/15 px-3 py-2 text-xs text-white placeholder-white/30 outline-none focus:border-[#C4922A] rounded-xs"
+                  placeholder="Type a custom size (e.g. UK 10, EU 40)..."
+                  className="flex-1 min-w-0 bg-[#181818] border border-white/15 px-3 py-2 text-xs text-white placeholder-white/30 outline-none focus:border-[#C4922A] rounded-xs"
                 />
                 <button
                   type="button"
                   onClick={handleAddCustomSize}
-                  className="btn-outline-gold py-2 px-4 text-xs font-semibold flex items-center gap-1 cursor-pointer shrink-0"
+                  className="h-8.5 px-3 border border-[#C4922A] bg-[#C4922A]/10 hover:bg-[#C4922A]/20 text-[#E8B84B] text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 rounded-xs cursor-pointer shrink-0 whitespace-nowrap transition-colors"
                 >
-                  <Plus size={13} /> Add Custom
+                  <Plus size={12} className="shrink-0" /> Add Custom
                 </button>
               </div>
             </div>
@@ -575,7 +575,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
               </div>
 
               {/* Clickable Color Badges Grid */}
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {COLOR_PRESETS.map(colorName => {
                   const isSelected = colors.includes(colorName);
                   return (
@@ -583,13 +583,13 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
                       type="button"
                       key={colorName}
                       onClick={() => toggleColor(colorName)}
-                      className={`px-3 py-1.5 text-xs font-medium rounded-xs border transition-all cursor-pointer flex items-center gap-1.5 ${
+                      className={`px-2.5 py-1 text-[11px] sm:text-xs font-medium rounded-xs border transition-all cursor-pointer flex items-center gap-1 shrink-0 ${
                         isSelected
                           ? 'bg-[#C4922A]/30 text-white border-[#C4922A] font-semibold'
                           : 'bg-[#181818] border-white/15 text-white/70 hover:border-white/40 hover:text-white'
                       }`}
                     >
-                      {isSelected && <Check size={12} className="text-[#C4922A]" />}
+                      {isSelected && <Check size={11} className="text-[#C4922A] shrink-0" />}
                       {colorName}
                     </button>
                   );
@@ -608,10 +608,10 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
                     colors.map(c => (
                       <span
                         key={c}
-                        className="inline-flex items-center gap-1.5 bg-white/10 border border-white/20 px-2.5 py-1 text-xs text-white rounded-xs"
+                        className="inline-flex items-center gap-1.5 bg-white/10 border border-white/20 px-2 py-0.5 text-xs text-white rounded-xs shrink-0"
                       >
                         {c}
-                        <X size={12} className="cursor-pointer hover:text-red-400" onClick={() => handleRemoveColor(c)} />
+                        <X size={12} className="cursor-pointer hover:text-red-400 shrink-0" onClick={() => handleRemoveColor(c)} />
                       </span>
                     ))
                   )}
@@ -630,15 +630,15 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
                       handleAddCustomColor();
                     }
                   }}
-                  placeholder="Type a custom color (e.g. Lavender, Teal, Rust)..."
-                  className="flex-1 bg-[#181818] border border-white/15 px-3 py-2 text-xs text-white placeholder-white/30 outline-none focus:border-[#C4922A] rounded-xs"
+                  placeholder="Type a custom color (e.g. Lavender, Teal)..."
+                  className="flex-1 min-w-0 bg-[#181818] border border-white/15 px-3 py-2 text-xs text-white placeholder-white/30 outline-none focus:border-[#C4922A] rounded-xs"
                 />
                 <button
                   type="button"
                   onClick={handleAddCustomColor}
-                  className="btn-outline-gold py-2 px-4 text-xs font-semibold flex items-center gap-1 cursor-pointer shrink-0"
+                  className="h-8.5 px-3 border border-[#C4922A] bg-[#C4922A]/10 hover:bg-[#C4922A]/20 text-[#E8B84B] text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 rounded-xs cursor-pointer shrink-0 whitespace-nowrap transition-colors"
                 >
-                  <Plus size={13} /> Add Custom
+                  <Plus size={12} className="shrink-0" /> Add Custom
                 </button>
               </div>
             </div>
@@ -763,7 +763,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
                       setInStock(typeof val === 'number' ? val > 0 : false);
                     }}
                     placeholder="e.g. 15"
-                    className="flex-1 h-10.5 bg-[#181818] border border-white/15 px-3.5 text-sm text-white font-mono font-bold outline-none focus:border-[#C4922A] rounded-xs"
+                    className="flex-1 min-w-0 h-9 bg-[#181818] border border-white/15 px-3 text-xs sm:text-sm text-white font-mono font-bold outline-none focus:border-[#C4922A] rounded-xs"
                   />
                   <button
                     type="button"
@@ -772,7 +772,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
                       setInStock(next);
                       setStockQuantity(next ? 10 : 0);
                     }}
-                    className={`h-10.5 px-3.5 flex items-center justify-center text-xs font-bold uppercase tracking-wider rounded-xs border transition-all cursor-pointer shrink-0 whitespace-nowrap ${
+                    className={`h-9 px-3 flex items-center justify-center text-[10.5px] font-bold uppercase tracking-wider rounded-xs border transition-all cursor-pointer shrink-0 whitespace-nowrap ${
                       inStock
                         ? 'border-emerald-500/40 bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25'
                         : 'border-red-500/40 bg-red-500/15 text-red-400 hover:bg-red-500/25'
@@ -811,7 +811,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
                       setStockQuantity(preset.val);
                       setInStock(preset.val > 0);
                     }}
-                    className={`text-[10px] px-2.5 py-1 rounded-xs border transition-all cursor-pointer font-medium ${
+                    className={`text-[9.5px] px-2 py-0.5 rounded-xs border transition-all cursor-pointer font-medium shrink-0 ${
                       stockQuantity === preset.val
                         ? 'bg-[#C4922A] text-black font-bold border-[#C4922A]'
                         : 'bg-white/5 border-white/10 text-white/75 hover:border-[#C4922A]/60 hover:text-white'
@@ -821,48 +821,47 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
                   </button>
                 ))}
 
-                <div className="flex items-center gap-1.5 ml-auto">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const curr = typeof stockQuantity === 'number' ? stockQuantity : 0;
-                      setStockQuantity(curr + 5);
-                      setInStock(true);
-                    }}
-                    className="text-[10px] px-2.5 py-1 rounded-xs bg-[#C4922A]/20 border border-[#C4922A]/50 text-[#E8B84B] hover:bg-[#C4922A]/35 cursor-pointer font-bold"
-                  >
-                    +5 More
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const curr = typeof stockQuantity === 'number' ? stockQuantity : 0;
-                      setStockQuantity(curr + 10);
-                      setInStock(true);
-                    }}
-                    className="text-[10px] px-2.5 py-1 rounded-xs bg-[#C4922A]/20 border border-[#C4922A]/50 text-[#E8B84B] hover:bg-[#C4922A]/35 cursor-pointer font-bold"
-                  >
-                    +10 More
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const curr = typeof stockQuantity === 'number' ? stockQuantity : 0;
+                    setStockQuantity(curr + 5);
+                    setInStock(true);
+                  }}
+                  className="text-[9.5px] px-2 py-0.5 rounded-xs bg-[#C4922A]/20 border border-[#C4922A]/50 text-[#E8B84B] hover:bg-[#C4922A]/35 cursor-pointer font-bold shrink-0"
+                >
+                  +5 More
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const curr = typeof stockQuantity === 'number' ? stockQuantity : 0;
+                    setStockQuantity(curr + 10);
+                    setInStock(true);
+                  }}
+                  className="text-[9.5px] px-2 py-0.5 rounded-xs bg-[#C4922A]/20 border border-[#C4922A]/50 text-[#E8B84B] hover:bg-[#C4922A]/35 cursor-pointer font-bold shrink-0"
+                >
+                  +10 More
+                </button>
               </div>
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-3 pt-6 border-t border-white/10">
+          {/* Action Buttons (Compact, Uniform Height, Perfectly Aligned) */}
+          <div className="flex items-center gap-2 pt-3 sm:pt-4 border-t border-white/10">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-3 border border-white/20 text-white/70 hover:text-white hover:border-white/40 text-xs tracking-wider uppercase font-semibold transition-all rounded-xs cursor-pointer"
+              className="flex-1 sm:flex-none h-9.5 sm:h-10 px-4 sm:px-6 border border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white text-[11px] sm:text-xs tracking-wider uppercase font-semibold rounded-xs cursor-pointer transition-all text-center flex items-center justify-center whitespace-nowrap"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="btn-gold px-8 py-3 text-xs tracking-wider uppercase font-bold flex items-center gap-2 cursor-pointer shadow-lg"
+              className="flex-1 sm:flex-none h-9.5 sm:h-10 px-4 sm:px-7 bg-[#C4922A] hover:bg-[#d49f33] active:bg-[#a6791e] text-white text-[11px] sm:text-xs tracking-wider uppercase font-bold flex items-center justify-center gap-1.5 cursor-pointer rounded-xs shadow-md whitespace-nowrap transition-all"
             >
-              <Sparkles size={14} /> {product ? 'Update Piece' : 'Publish to Store'}
+              <Sparkles size={13} className="shrink-0" />
+              <span>{product ? 'Update Piece' : 'Publish to Store'}</span>
             </button>
           </div>
         </form>

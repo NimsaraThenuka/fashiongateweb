@@ -57,27 +57,30 @@ body {
   overflow-x: hidden;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar - Razor-thin, elegant micro-scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
+  height: 2px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: rgba(120, 120, 120, 0.15);
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb {
   background: #C4922A;
-  border-radius: 3px;
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #96700A;
+  background: #E8B84B;
 }
 
 /* Micro scrollbar for mobile tabs */
 .tabs-scrollbar-mini::-webkit-scrollbar {
-  height: 2.5px;
+  height: 2px;
+  width: 2px;
 }
 .tabs-scrollbar-mini::-webkit-scrollbar-track {
-  background: #E8E4DF;
+  background: rgba(120, 120, 120, 0.15);
   border-radius: 9999px;
 }
 .tabs-scrollbar-mini::-webkit-scrollbar-thumb {
@@ -86,7 +89,18 @@ body {
 }
 .tabs-scrollbar-mini {
   scrollbar-width: thin;
-  scrollbar-color: #C4922A #E8E4DF;
+  scrollbar-color: #C4922A rgba(120, 120, 120, 0.15);
+}
+
+/* Hide scrollbar utility when needed */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+  height: 0;
+  width: 0;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* Utility classes */
